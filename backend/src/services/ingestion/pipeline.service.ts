@@ -4,17 +4,33 @@ import { ExtractedQuestion, PipelineResult } from '../../types';
 
 export async function processDocumentPipeline(
   rawLines: string[],
-  concurrency = 5
+  concurrency = 2
 ): Promise<PipelineResult> {
-  const chunks = chunkNormalizedText(rawLines, 35, 3);
+  // Use a chunk size of 15 with 2-line overlap to avoid output token truncation in LLM responses
+  const chunks = chunkNormalizedText(rawLines, 15, 2);
 
   const results = [];
 
-  // Controlled concurrency batching to prevent API rate limit issues
+  console.log(`[Pipeline] Total lines: ${rawLines.length}, split into ${chunks.length} chunks.`);
+
+  // Controlled concurrency batching with pacing to prevent Groq TPM rate limit spikes
   for (let i = 0; i < chunks.length; i += concurrency) {
     const batch = chunks.slice(i, i + concurrency);
-    const batchResults = await Promise.all(batch.map((chunk) => parseChunkWithLLM(chunk)));
+    console.log(`[Pipeline] Processing batch: chunks ${i + 1}-${Math.min(i + concurrency, chunks.length)} of ${chunks.length}...`);
+    const batchResults = await Promise.all(
+      batch.map(async (chunk, bIdx) => {
+        const chunkIndex = i + bIdx + 1;
+        const res = await parseChunkWithLLM(chunk);
+        console.log(`[Pipeline] Chunk ${chunkIndex}/${chunks.length} parsed (${res.problems?.length || 0} problems found)`);
+        return res;
+      })
+    );
     results.push(...batchResults);
+
+    // Brief pacing between batches if more chunks remain
+    if (i + concurrency < chunks.length) {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
   }
 
   // Flatten problems array
