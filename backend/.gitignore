@@ -19,5 +19,7 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/
+# Test outputs
+src/tests/output.json
+src/tests/*.json
 
