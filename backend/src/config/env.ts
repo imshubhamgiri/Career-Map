@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
+import path from 'path';
 import { z } from 'zod';
 
+// Load .env from cwd or backend project root
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const envSchema = z.object({
   PORT: z.string().default('3000').transform((val) => parseInt(val, 10)),
