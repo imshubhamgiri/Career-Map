@@ -1,6 +1,9 @@
 import { chunkNormalizedText } from './chunker.service';
 import { parseChunkWithLLM } from './llmParser.service';
 import { ExtractedQuestion, PipelineResult } from '../../types';
+import { logger } from '../../utils/logger';
+
+const log = logger.child({ service: 'IngestionPipeline' });
 
 export async function processDocumentPipeline(
   rawLines: string[],
@@ -11,17 +14,26 @@ export async function processDocumentPipeline(
 
   const results = [];
 
-  console.log(`[Pipeline] Total lines: ${rawLines.length}, split into ${chunks.length} chunks.`);
+  log.info(
+    { totalLines: rawLines.length, totalChunks: chunks.length, concurrency },
+    'Document partitioned into chunks'
+  );
 
   // Controlled concurrency batching with pacing to prevent Groq TPM rate limit spikes
   for (let i = 0; i < chunks.length; i += concurrency) {
     const batch = chunks.slice(i, i + concurrency);
-    console.log(`[Pipeline] Processing batch: chunks ${i + 1}-${Math.min(i + concurrency, chunks.length)} of ${chunks.length}...`);
+    log.info(
+      { batchStart: i + 1, batchEnd: Math.min(i + concurrency, chunks.length), totalChunks: chunks.length },
+      'Processing chunk batch'
+    );
     const batchResults = await Promise.all(
       batch.map(async (chunk, bIdx) => {
         const chunkIndex = i + bIdx + 1;
         const res = await parseChunkWithLLM(chunk);
-        console.log(`[Pipeline] Chunk ${chunkIndex}/${chunks.length} parsed (${res.problems?.length || 0} problems found)`);
+        log.debug(
+          { chunkIndex, totalChunks: chunks.length, problemsFound: res.problems?.length || 0 },
+          'Chunk parsed'
+        );
         return res;
       })
     );

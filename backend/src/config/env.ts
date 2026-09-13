@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const envSchema = z.object({
   PORT: z.string().default('3000').transform((val) => parseInt(val, 10)),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
   GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
   GOOGLE_API_KEY: z.string().optional(),
 });
