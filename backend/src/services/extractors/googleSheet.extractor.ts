@@ -1,6 +1,9 @@
 import { sheets } from '../../config/google';
+import { logger } from '../../utils/logger';
 
+const log = logger.child({ service: 'GoogleSheetExtractor' });
 export async function normalizeGoogleSheet(spreadsheetId: string): Promise<string[]> {
+  log.info(`Normalizing Google Sheet with ID: ${spreadsheetId}`);
   const response = await sheets.spreadsheets.get({
     spreadsheetId,
     fields: 'sheets(properties(title),data(rowData(values(formattedValue,hyperlink))))',
@@ -32,5 +35,6 @@ export async function normalizeGoogleSheet(spreadsheetId: string): Promise<strin
     }
   }
 
+  log.info(`Raw rows from Google Sheet: ${rawRows.length}`);
   return rawRows;
 }
