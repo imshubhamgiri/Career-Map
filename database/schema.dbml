@@ -1,0 +1,43 @@
+Table users {
+  id uuid [pk, default: `gen_random_uuid()`]
+  email varchar [unique, not null]
+  password_hash varchar [note: 'Null for OAuth users, hashed string for email/password auth']
+  created_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`, not null]
+}
+
+Table roadmaps {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  title varchar [not null]
+  source_type varchar [not null, note: 'pdf, drive_url, or manual']
+  source_url text
+  created_at timestamp [default: `now()`, not null]
+}
+
+Table problems {
+  id uuid [pk, default: `gen_random_uuid()`]
+  roadmap_id uuid [not null]
+  title varchar [not null]
+  topic varchar [not null]
+  difficulty varchar [note: 'Easy, Medium, Hard']
+  external_url text
+  canonical_slug varchar [note: 'Unique slug for cross-referencing e.g. two-sum']
+  created_at timestamp [default: `now()`, not null]
+}
+
+Table progress_events {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  problem_id uuid [not null]
+  status varchar [not null, note: 'SOLVED, ATTEMPTED, REVISE']
+  notes text
+  completed_at timestamp [default: `now()`, not null]
+}
+
+// Foreign Key Relationships
+Ref: roadmaps.user_id > users.id [delete: cascade]
+Ref: problems.roadmap_id > roadmaps.id [delete: cascade]
+Ref: progress_events.user_id > users.id [delete: cascade]
+Ref: progress_events.problem_id > problems.id [delete: cascade]
+
