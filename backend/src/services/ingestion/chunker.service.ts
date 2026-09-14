@@ -1,7 +1,7 @@
 export function chunkNormalizedText(
   lines: string[],
-  chunkSize = 35,
-  overlap = 3
+  chunkSize = 7,
+  overlap = 1
 ): string[][] {
   const chunks: string[][] = [];
   let i = 0;
