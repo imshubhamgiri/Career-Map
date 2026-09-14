@@ -12,6 +12,7 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
   GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
   GOOGLE_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
