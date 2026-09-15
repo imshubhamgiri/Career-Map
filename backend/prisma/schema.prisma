@@ -1,0 +1,74 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String          @unique @db.VarChar(255)
+  name         String?         @db.VarChar(255)
+  passwordHash String?         @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  roadmaps       Roadmap[]
+  progressEvents ProgressEvent[]
+
+  @@map("users")
+}
+
+model Roadmap {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  title        String    @db.VarChar(255)
+  sourceType   String    @map("source_type") @db.VarChar(50)
+  sourceUrl    String?   @map("source_url") @db.Text
+  status       String    @default("COMPLETED") @db.VarChar(50)
+  errorMessage String?   @map("error_message") @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problems Problem[]
+
+  @@index([userId])
+  @@index([sourceUrl])
+  @@index([status])
+  @@map("roadmaps")
+}
+
+model Problem {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roadmapId     String    @map("roadmap_id") @db.Uuid
+  title         String    @db.VarChar(255)
+  topic         String    @db.VarChar(255)
+  difficulty    String?   @db.VarChar(50)
+  externalUrl   String?   @map("external_url") @db.Text
+  canonicalSlug String?   @map("canonical_slug") @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+
+  roadmap        Roadmap         @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  progressEvents ProgressEvent[]
+
+  @@index([roadmapId])
+  @@index([canonicalSlug])
+  @@map("problems")
+}
+
+model ProgressEvent {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  problemId   String   @map("problem_id") @db.Uuid
+  status      String   @db.VarChar(50)
+  notes       String?  @db.Text
+  completedAt DateTime @default(now()) @map("completed_at") @db.Timestamp(6)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, problemId])
+  @@map("progress_events")
+}
