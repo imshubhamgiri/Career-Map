@@ -1,3 +1,23 @@
+Enum RoadmapStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+Enum Difficulty {
+  UNKNOWN
+  EASY
+  MEDIUM
+  HARD
+}
+
+Enum ProgressStatus {
+  SOLVED
+  ATTEMPTED
+  REVISE
+}
+
 Table users {
   id uuid [pk, default: `gen_random_uuid()`]
   email varchar [unique, not null]
@@ -13,7 +33,7 @@ Table roadmaps {
   title varchar [not null]
   source_type varchar [not null, note: 'pdf, drive_url, or manual']
   source_url text
-  status varchar [not null, default: 'COMPLETED', note: 'PENDING, PROCESSING, COMPLETED, FAILED']
+  status RoadmapStatus [not null, default: 'COMPLETED']
   error_message text [note: 'Error details if status is FAILED']
   created_at timestamp [default: `now()`, not null]
   updated_at timestamp [default: `now()`, not null]
@@ -30,7 +50,7 @@ Table problems {
   roadmap_id uuid [not null]
   title varchar [not null]
   topic varchar [not null]
-  difficulty varchar [note: 'Easy, Medium, Hard']
+  difficulty Difficulty [not null, default: 'UNKNOWN']
   external_url text
   canonical_slug varchar [note: 'Unique slug for cross-referencing e.g. two-sum']
   created_at timestamp [default: `now()`, not null]
@@ -45,7 +65,7 @@ Table progress_events {
   id uuid [pk, default: `gen_random_uuid()`]
   user_id uuid [not null]
   problem_id uuid [not null]
-  status varchar [not null, note: 'SOLVED, ATTEMPTED, REVISE']
+  status ProgressStatus [not null]
   notes text
   completed_at timestamp [default: `now()`, not null]
 
