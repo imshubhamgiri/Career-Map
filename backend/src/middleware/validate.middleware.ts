@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import {emailSchema} from '../schemas/api.schema';
+import {emailSchema , oauthRegisterSchema} from '../schemas/api.schema';
 import {ErrorResponse} from '../types/index';
 import * as z from 'zod';
 
@@ -65,4 +65,12 @@ export const validateRegisterBody = (
    void =>
  {
   validateSchema(emailSchema, req, res, next);
+}
+
+export const oAuthRegisterBody = (
+  req: Request<{}, {}, typeof oauthRegisterSchema>,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
+  validateSchema(oauthRegisterSchema, req, res, next);
 }

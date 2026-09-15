@@ -5,7 +5,7 @@ export const IngestUrlSchema = z.object({
 });
 
  const BaseUserSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters long'),
+  name: z.string().min(3, 'Username must be at least 3 characters long'),
   email: z.email('A valid email is required'),
 });
 
@@ -17,6 +17,8 @@ export const emailSchema = BaseUserSchema.extend({
   oauthProvider: z.enum(['google', 'github', 'facebook']),
   oauthId: z.string().min(1, 'OAuth ID is required'),
 });
+
+
 
 
 export type IngestUrlInput = z.infer<typeof IngestUrlSchema>;

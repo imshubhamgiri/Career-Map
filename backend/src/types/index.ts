@@ -11,6 +11,13 @@ export interface PipelineSuccessResult {
   data: ExtractedQuestion[];
 }
 
+export interface IUserInput{
+name: string | null;
+email: string;
+password?: string;
+provider?: 'google' | 'github' | 'facebook';
+providerId?: string;
+}
 export interface PipelineFailureResult {
   success: false;
   message: string;
