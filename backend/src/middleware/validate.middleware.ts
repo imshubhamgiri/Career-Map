@@ -1,5 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
+import {emailSchema} from '../schemas/api.schema';
+import {ErrorResponse} from '../types/index';
+import * as z from 'zod';
+
+// const ErrorResponseSchema = z.object({
+//   success: z.literal(false),
+//   message: z.string(),
+//   error: z.array(
+//     z.object({
+//       field: z.string(),
+//       message: z.string(),
+//     })
+//   ),
+// });
+
+// type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 
 export function validateBody(schema: z.ZodType<any>) {
   return (req: Request, _res: Response, next: NextFunction): void => {
@@ -10,4 +25,44 @@ export function validateBody(schema: z.ZodType<any>) {
     req.body = result.data;
     next();
   };
+}
+
+
+const validateSchema = <T>(
+  schema: z.ZodType<T>,
+  req: Request,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
+  const result = schema.safeParse(req.body);
+
+  if (!result.success) {
+    const errors = result.error.issues.map((err) => ({
+      field: String(err.path[0]),
+      message: err.message,
+    }));
+
+    res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      error: errors,
+    });
+    return;
+  }
+
+  req.body = result.data as Record<string, unknown>;
+  next();
+};
+
+
+
+
+export const validateRegisterBody = (
+  req:Request<{}, {}, typeof emailSchema>,
+   res: Response<ErrorResponse>,
+    next: NextFunction
+  ):
+   void =>
+ {
+  validateSchema(emailSchema, req, res, next);
 }
