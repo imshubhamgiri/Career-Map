@@ -5,6 +5,7 @@ import pinoHttp from 'pino-http';
 import apiRoutes from './routes';
 import { errorHandler } from './errors/errorHandler';
 import { logger } from './utils/logger';
+import prisma from './config/db';
 
 const app: Express = express();
 
@@ -28,8 +29,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+app.get('/health',async (_req: Request, res: Response) => {
+  const isDbConnected = await prisma.$queryRaw`SELECT 1`;
+  res.status(isDbConnected ? 200 : 500).json({
+     status: isDbConnected ? 'ok' : 'error', 
+     message: isDbConnected ? 'Database is connected' : 'Database unreachable',
+     uptime: process.uptime() 
+    });
 });
 
 // Central API Routes
