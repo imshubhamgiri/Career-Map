@@ -1,12 +1,12 @@
 import prisma from '../config/db';
 import { User } from '@prisma/client';
-import {RegisterUserInput} from '../types/index';
+import {IUserInput} from '../types/index';
 
 
 export class UserRepository {
-     createUser(data: RegisterUserInput): Promise<User> {
+     createUser(data: IUserInput): Promise<User> {
         return prisma.user.create({
-            data,
+            data
         });
     }
 
