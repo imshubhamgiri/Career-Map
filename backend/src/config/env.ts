@@ -13,6 +13,7 @@ const envSchema = z.object({
   GROQ_API_KEY: z.string().min(1, 'GROQ_API_KEY is required'),
   GOOGLE_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  DATABASE_URL: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
