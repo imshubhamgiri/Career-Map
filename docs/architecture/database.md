@@ -21,6 +21,7 @@ erDiagram
     users {
         uuid id PK
         varchar email UK
+        varchar name
         varchar password_hash
         timestamp created_at
         timestamp updated_at
@@ -32,7 +33,10 @@ erDiagram
         varchar title
         varchar source_type
         text source_url
+        varchar status
+        text error_message
         timestamp created_at
+        timestamp updated_at
     }
 
     problems {
@@ -80,13 +84,16 @@ erDiagram
 To prevent redundant LLM extraction costs when multiple users import the same source URL (e.g. popular sheets), the database serves as an extraction cache while strictly preserving individual user ownership:
 
 1. **Check Existing Source**:
-   Query `roadmaps` for an existing extraction with `source_url = :url`.
+   Query `roadmaps` for an existing completed extraction:
+   ```sql
+   SELECT id FROM roadmaps WHERE source_url = :url AND status = 'COMPLETED' LIMIT 1;
+   ```
 2. **Atomic Clone**:
    If an existing roadmap $R_1$ exists and `forceRefresh` is not set:
    ```sql
    -- 1. Create a distinct roadmap row for User B
-   INSERT INTO roadmaps (id, user_id, title, source_type, source_url)
-   VALUES (gen_random_uuid(), :userBId, :title, :sourceType, :sourceUrl)
+   INSERT INTO roadmaps (id, user_id, title, source_type, source_url, status)
+   VALUES (gen_random_uuid(), :userBId, :title, :sourceType, :sourceUrl, 'COMPLETED')
    RETURNING id; -- Returns $newRoadmapId
 
    -- 2. Fast atomic clone of all problems into User B's roadmap
@@ -100,11 +107,18 @@ To prevent redundant LLM extraction costs when multiple users import the same so
    - User B's `progress_events` reference their own unique `problems.id`.
    - Ingestion executes in $\sim 5\text{ms}$ with 0 LLM tokens burned.
 
-## Migration Protocol
+## Migration & ORM Runtime (Prisma ORM v7)
 
-1. Modify `database/schema.dbml`.
-2. Update `backend/prisma/schema.prisma` to match.
-3. Run `npx prisma migrate dev --name <migration_name>` inside `backend/`.
-4. Commit the generated SQL migrations in `backend/prisma/migrations/`.
+1. **Schema & Config**:
+   - `database/schema.dbml` defines the schema design.
+   - `backend/prisma/schema.prisma` defines the Prisma models (datasource URLs are omitted per Prisma 7 standards).
+   - `backend/prisma.config.ts` configures the migration and shadow database connection URLs for Prisma CLI.
+2. **Driver Adapter Runtime**:
+   - Prisma Client runtime utilizes `@prisma/adapter-pg` with a pooled `pg` client connection.
+   - Centralized singleton client is exported from `backend/src/config/db.ts`.
+3. **Running Migrations**:
+   - Run `npx prisma migrate dev --name <migration_name>` inside `backend/`.
+   - Commit the generated SQL migrations in `backend/prisma/migrations/`.
+
 
 
