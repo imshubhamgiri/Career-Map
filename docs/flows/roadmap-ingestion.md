@@ -65,3 +65,38 @@ flowchart TD
    - On success, problems and roadmap records are persisted to PostgreSQL.
 
 
+
+
+## change In ingestion Process
+
+
+                        Google Sheet / PDF
+                                ↓
+                        Raw extraction
+                                ↓
+                        LLM structuring
+                                ↓
+                        RoadmapProblemCandidate
+                                ↓
+                        Problem Identity Resolver  ← NEW
+                                ↓
+                        ┌──────────────────────────────┐
+                        │ Does canonical problem exist?│
+                        └──────────────┬───────────────┘
+                                    │
+                            ┌───────┴────────┐
+                            │                │
+                            YES               NO
+                            │                │
+                            ▼                ▼
+                        link existing      create new
+                        Problem            Problem
+                            │                │
+                            └───────┬────────┘
+                                    ▼
+                            create RoadmapProblem
+
+
+ This change introduces a new step in the ingestion process called the "Problem Identity Resolver." This step checks if a canonical problem already exists in the database. If it does, the existing problem is linked to the new roadmap. If not, a new problem is created and then linked to the roadmap. This ensures that duplicate problems are not created and maintains a clean and organized database of problems.
+
+
