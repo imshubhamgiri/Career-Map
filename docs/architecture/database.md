@@ -15,6 +15,7 @@ database/schema.dbml
 erDiagram
     users ||--o{ roadmaps : owns
     users ||--o{ progress_events : records
+    users ||--o{ sessions : owns
     roadmaps ||--o{ problems : contains
     problems ||--o{ progress_events : tracks
 
@@ -25,6 +26,18 @@ erDiagram
         varchar password_hash
         timestamp created_at
         timestamp updated_at
+    }
+
+    sessions {
+        uuid id PK
+        uuid user_id FK
+        varchar token_family
+        varchar hashed_token UK
+        varchar ip_address
+        text user_agent
+        boolean revoked
+        timestamp expires_at
+        timestamp created_at
     }
 
     roadmaps {
@@ -66,14 +79,20 @@ erDiagram
    - `roadmaps.user_id` references `users.id` with `ON DELETE CASCADE`.
    - `problems.roadmap_id` references `roadmaps.id` with `ON DELETE CASCADE`.
    - `progress_events` reference both `users.id` and `problems.id` with `ON DELETE CASCADE`.
+   - `sessions.user_id` references `users.id` with `ON DELETE CASCADE`.
 
 2. **Identifiers**:
    - All primary keys use UUIDs generated via `gen_random_uuid()`.
 
-3. **Canonical Slugs**:
+3. **Session & Token Constraints**:
+   - `sessions.hashed_token` has a `UNIQUE` constraint and index to guarantee fast O(1) lookups and single-use session tokens.
+   - `sessions.token_family` is indexed for atomic invalidation during token reuse attack detection.
+   - `sessions.user_id` and `sessions.expires_at` are indexed for lifecycle lookups and periodic garbage collection of expired sessions.
+
+4. **Canonical Slugs**:
    - `problems.canonical_slug` provides a normalized identifier (e.g. `two-sum`, `lru-cache`) to cross-reference problems across multiple roadmaps or link with external platforms like LeetCode.
 
-4. **Progress States**:
+5. **Progress States**:
    - `progress_events.status` values:
      - `SOLVED`: Problem successfully completed.
      - `ATTEMPTED`: Problem attempted but not yet fully solved.

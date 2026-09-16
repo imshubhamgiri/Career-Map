@@ -16,8 +16,12 @@ model User {
 
   roadmaps       Roadmap[]
   progressEvents ProgressEvent[]
+  sessions       Session[]
 
   @@map("users")
+
+  @@index([email])
+  @@index([createdAt])
 }
 
 enum RoadmapStatus {
@@ -92,3 +96,24 @@ model ProgressEvent {
   @@index([userId, problemId])
   @@map("progress_events")
 }
+
+model Session {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  tokenFamily String   @map("token_family") @db.VarChar(255)
+  hashedToken String   @unique @map("hashed_token") @db.VarChar(255)
+  ipAddress   String?  @map("ip_address") @db.VarChar(255)
+  userAgent   String?  @map("user_agent") @db.Text
+  revoked     Boolean  @default(false)
+  expiresAt   DateTime @map("expires_at") @db.Timestamp(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenFamily])
+  @@index([hashedToken])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+

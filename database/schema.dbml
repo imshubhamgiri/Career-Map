@@ -74,8 +74,29 @@ Table progress_events {
   }
 }
 
+Table sessions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  token_family varchar [not null]
+  hashed_token varchar [unique, not null]
+  ip_address varchar
+  user_agent text
+  revoked boolean [default: false, not null]
+  expires_at timestamp [not null]
+  created_at timestamp [default: `now()`, not null]
+
+  indexes {
+    user_id
+    token_family
+    hashed_token
+    expires_at
+  }
+}
+
 // Foreign Key Relationships
 Ref: roadmaps.user_id > users.id [delete: cascade]
 Ref: problems.roadmap_id > roadmaps.id [delete: cascade]
 Ref: progress_events.user_id > users.id [delete: cascade]
 Ref: progress_events.problem_id > problems.id [delete: cascade]
+Ref: sessions.user_id > users.id [delete: cascade]
+
