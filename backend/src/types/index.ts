@@ -11,10 +11,22 @@ export interface PipelineSuccessResult {
   data: ExtractedQuestion[];
 }
 
+export interface UserResponse {
+  id?: string;
+  name?: string;
+  email: string;
+}
+
+export interface LoginResponse {
+  user: UserResponse;
+  accessToken: string;
+  refreshToken: string;
+}
+
 export interface IUserInput{
 name: string | null;
 email: string;
-password?: string;
+passwordHash?: string | null;
 provider?: 'google' | 'github' | 'facebook';
 providerId?: string;
 }

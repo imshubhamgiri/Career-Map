@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import {emailSchema , oauthRegisterSchema} from '../schemas/api.schema';
-import {ErrorResponse} from '../types/index';
+import { emailSchema, oauthRegisterSchema, loginSchema } from '../schemas/api.schema';
+import { ErrorResponse } from '../types/index';
 import * as z from 'zod';
+
 
 // const ErrorResponseSchema = z.object({
 //   success: z.literal(false),
@@ -73,4 +74,13 @@ export const oAuthRegisterBody = (
   next: NextFunction
 ): void => {
   validateSchema(oauthRegisterSchema, req, res, next);
-}
+};
+
+export const validateLoginBody = (
+  req: Request<{}, {}, typeof loginSchema>,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
+  validateSchema(loginSchema, req, res, next);
+};
+

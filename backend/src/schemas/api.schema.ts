@@ -18,7 +18,11 @@ export const emailSchema = BaseUserSchema.extend({
   oauthId: z.string().min(1, 'OAuth ID is required'),
 });
 
-
-
+export const loginSchema = z.object({
+  email: z.email('A valid email is required'),
+  password: z.string().min(1, 'Password is required'),
+});
 
 export type IngestUrlInput = z.infer<typeof IngestUrlSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+
