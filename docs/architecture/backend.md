@@ -22,17 +22,19 @@ flowchart TD
 backend/src/
 ├── app.ts                 # Express application configuration & middleware pipeline
 ├── server.ts              # Server startup & graceful shutdown
-├── config/                # Environment configuration (env.ts, google.ts)
-├── controllers/           # HTTP request handlers (e.g., ingest.controller.ts)
+├── config/                # Environment configuration (env.ts, db.ts, google.ts)
+├── controllers/           # HTTP request handlers (user.controller.ts, ingest.controller.ts)
 ├── errors/                # AppError class and centralized errorHandler middleware
-├── middleware/            # Multer upload, Zod body/query validation
-├── routes/                # Central route tree (/api/v1/...)
+├── middleware/            # Auth guard, Multer upload, Zod body/query validation
+├── repositories/          # Data access layer (user.repository.ts, roadmap.repository.ts)
+├── routes/                # Central route tree (/api/v1/auth, /api/v1/ingest)
 ├── schemas/               # Zod validation schemas for requests and LLM outputs
-├── services/              # Core business services
+├── services/              # Core business services (user.service.ts, roadmap.service.ts)
 │   ├── extractors/        # Source extractors (PDF, Google Sheets, Google Docs, Web)
 │   └── ingestion/         # Pipeline orchestration, chunking, LLM parsing
+├── tests/                 # Automated test suites (auth.test.ts, test.ts)
 ├── types/                 # Shared TypeScript interfaces & types
-└── utils/                 # Utilities (Pino logger, string helpers)
+└── utils/                 # Utilities (crypto.ts, tokens.ts, logger.ts)
 ```
 
 ## Key Architectural Patterns
@@ -48,12 +50,25 @@ Controllers are responsible only for:
 - Ingestion extraction logic is isolated in `src/services/extractors/`.
 - Pipeline orchestration and batching logic reside in `src/services/ingestion/pipeline.service.ts`.
 - LLM interaction and prompt structuring are encapsulated in `src/services/ingestion/llmParser.service.ts`.
+- Identity and authentication orchestration reside in `src/services/user.service.ts`.
 
-### 3. Error Handling
+### 3. Repository Layer
+- Encapsulates all Prisma ORM operations and database queries.
+- Controllers and services do not execute direct SQL or Prisma queries; they invoke repository methods.
+- Maintains strict types matching `@prisma/client` models.
+
+### 4. Authentication & Session Architecture
+- **Stateless Access Tokens**: Short-lived JWTs (15 min) carrying `userId` and `email` for low-latency authorization. Supported via HTTP cookies and `Authorization: Bearer <token>` headers.
+- **Stateful Opaque Refresh Tokens**: Cryptographically random 40-byte hex strings stored as SHA-256 hashes in PostgreSQL `sessions`.
+- **Refresh Token Rotation & Reuse Detection**: Rotating a refresh token revokes the previous token while preserving the `token_family`. If a compromised or revoked token is reused, all sessions in that family are immediately revoked.
+- **Transport Security**: Transported via `httpOnly`, `sameSite: strict` signed cookies scoped to `/api/v1/auth`.
+
+### 5. Error Handling
 - Throw `AppError(message, statusCode)` for predictable client errors.
 - Uncaught exceptions or programming bugs are handled uniformly in `src/errors/errorHandler.ts`, returning a clean `{ success: false, error: message }` payload while logging detailed stack traces via Pino.
 
-### 4. Logging
+### 6. Logging
 - Pino provides fast, structured JSON logging.
 - HTTP requests are automatically logged with request IDs via `pino-http`.
+
 
