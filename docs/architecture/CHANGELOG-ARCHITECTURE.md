@@ -65,9 +65,18 @@
   - Added `loginSchema` in `api.schema.ts` and `validateLoginBody` middleware to prevent validation conflicts with registration.
   - Created automated verification test suite in `backend/src/tests/auth.test.ts` verifying argon2 hashing, registration, login, token rotation, reuse invalidation, and session deletion.
 
+## 2026-09-18
+
+- **Canonical Problem Bank & Cross-Roadmap Progress Synchronization**:
+  - Established **ADR-003**: Decoupled `problems` from `roadmaps` by introducing the `roadmap_problems` junction table.
+  - `problems` table elevated to a global canonical problem bank with a `canonical_slug` (`UNIQUE`) representing the universal DSA concept (e.g. `two-sum`, `reverse-linked-list`).
+  - `roadmap_problems` junction table preserves roadmap-specific metadata: `original_title`, `original_url`, `original_category`, `original_difficulty`, and `order_index`.
+  - Added `GithubSyncStatus` ENUM (`NOT_SYNCED`, `PENDING`, `SYNCED`, `FAILED`) and sync tracking fields (`github_sync_status`, `github_repo`, `github_file_path`, `github_synced_at`) to `progress_events`.
+  - Solved cross-roadmap progress sync: completing a problem in one roadmap immediately reflects in all other roadmaps containing that canonical problem for that user.
+  - Designed the **Problem Identity Resolver & Batch Ingestion Matching Algorithm** using `WHERE canonical_slug IN (...)`, in-memory Map partitioning, and `createManyAndReturn` batch persistence for $O(1)$ query complexity.
+  - Updated `database/schema.dbml` (source of truth) and `backend/prisma/schema.prisma`.
+
 ## future
-- roadmap persistence & Clone-on-Ingest integration
-- BullMQ async queue integration
+- BullMQ async queue integration for background roadmap processing
 - OAuth 2.0 provider integration (GitHub, Google)
-
-
+- GitHub sync worker integration
