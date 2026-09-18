@@ -18,6 +18,13 @@ Enum ProgressStatus {
   REVISE
 }
 
+Enum GithubSyncStatus {
+  NOT_SYNCED
+  PENDING
+  SYNCED
+  FAILED
+}
+
 Table users {
   id uuid [pk, default: `gen_random_uuid()`]
   email varchar [unique, not null]
@@ -48,16 +55,39 @@ Table roadmaps {
 Table problems {
   id uuid [pk, default: `gen_random_uuid()`]
   roadmap_id uuid [not null]
+  canonical_slug varchar [unique, not null, note: 'Universal concept slug e.g. two-sum, trapping-rain-water']
   title varchar [not null]
   topic varchar [not null]
   difficulty Difficulty [not null, default: 'UNKNOWN']
+  platform varchar [note: 'Canonical platform e.g. LeetCode, GeeksforGeeks, CodeStudio']
   external_url text
   canonical_slug varchar [note: 'Unique slug for cross-referencing e.g. two-sum']
+  platform_problem_id varchar
   created_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`, not null]
 
   indexes {
     roadmap_id
     canonical_slug
+  }
+}
+
+Table roadmap_problems {
+  id uuid [pk, default: `gen_random_uuid()`]
+  roadmap_id uuid [not null]
+  problem_id uuid [not null]
+  topic varchar [not null, note: 'Arrays, DP, Graphs as categorized in this specific roadmap']
+  original_title varchar [not null]
+  original_url text
+  original_category varchar
+  original_difficulty Difficulty [not null, default: 'UNKNOWN']
+  order_index int [default: 0, not null]
+  created_at timestamp [default: `now()`, not null]
+
+  indexes {
+    (roadmap_id, problem_id) [unique]
+    roadmap_id
+    problem_id
   }
 }
 
@@ -67,10 +97,18 @@ Table progress_events {
   problem_id uuid [not null]
   status ProgressStatus [not null]
   notes text
+  github_sync_status GithubSyncStatus [default: 'NOT_SYNCED', not null]
+  github_repo varchar
+  github_file_path varchar
+  github_synced_at timestamp
   completed_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`, not null]
 
   indexes {
     (user_id, problem_id)
+    user_id
+    problem_id
+    github_sync_status
   }
 }
 
@@ -96,6 +134,8 @@ Table sessions {
 // Foreign Key Relationships
 Ref: roadmaps.user_id > users.id [delete: cascade]
 Ref: problems.roadmap_id > roadmaps.id [delete: cascade]
+Ref: roadmap_problems.roadmap_id > roadmaps.id [delete: cascade]
+Ref: roadmap_problems.problem_id > problems.id [delete: cascade]
 Ref: progress_events.user_id > users.id [delete: cascade]
 Ref: progress_events.problem_id > problems.id [delete: cascade]
 Ref: sessions.user_id > users.id [delete: cascade]

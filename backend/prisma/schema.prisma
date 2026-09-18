@@ -32,18 +32,18 @@ enum RoadmapStatus {
 }
 
 model Roadmap {
-  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String        @map("user_id") @db.Uuid
-  title        String        @db.VarChar(255)
-  sourceType   String        @map("source_type") @db.VarChar(50)
-  sourceUrl    String?       @map("source_url") @db.Text
-  status       RoadmapStatus @default(COMPLETED)
-  errorMessage String?       @map("error_message") @db.Text
-  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String          @map("user_id") @db.Uuid
+  title        String          @db.VarChar(255)
+  sourceType   String          @map("source_type") @db.VarChar(50)
+  sourceUrl    String?         @map("source_url") @db.Text
+  status       RoadmapStatus   @default(COMPLETED)
+  errorMessage String?         @map("error_message") @db.Text
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  problems Problem[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roadmapProblems RoadmapProblem[]
 
   @@index([userId])
   @@index([sourceUrl])
@@ -59,21 +59,42 @@ enum Difficulty {
 }
 
 model Problem {
-  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  roadmapId     String     @map("roadmap_id") @db.Uuid
-  title         String     @db.VarChar(255)
-  topic         String     @db.VarChar(255)
-  difficulty    Difficulty @default(UNKNOWN)
-  externalUrl   String?    @map("external_url") @db.Text
-  canonicalSlug String?    @map("canonical_slug") @db.VarChar(255)
-  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamp(6)
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  canonicalSlug     String           @unique @map("canonical_slug") @db.VarChar(255)
+  title             String           @db.VarChar(255)
+  difficulty        Difficulty       @default(UNKNOWN)
+  platform          String?          @db.VarChar(100)
+  externalUrl       String?          @map("external_url") @db.Text
+  platformProblemId String?          @map("platform_problem_id") @db.VarChar(100)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  roadmap        Roadmap         @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
-  progressEvents ProgressEvent[]
+  roadmapProblems   RoadmapProblem[]
+  progressEvents    ProgressEvent[]
 
-  @@index([roadmapId])
   @@index([canonicalSlug])
   @@map("problems")
+}
+
+model RoadmapProblem {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roadmapId          String     @map("roadmap_id") @db.Uuid
+  problemId          String     @map("problem_id") @db.Uuid
+  topic              String     @db.VarChar(255)
+  originalTitle      String     @map("original_title") @db.VarChar(255)
+  originalUrl        String?    @map("original_url") @db.Text
+  originalCategory   String?    @map("original_category") @db.VarChar(255)
+  originalDifficulty Difficulty @default(UNKNOWN) @map("original_difficulty")
+  orderIndex         Int        @default(0) @map("order_index")
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamp(6)
+
+  roadmap Roadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([roadmapId, problemId])
+  @@index([roadmapId])
+  @@index([problemId])
+  @@map("roadmap_problems")
 }
 
 enum ProgressStatus {
@@ -82,18 +103,31 @@ enum ProgressStatus {
   REVISE
 }
 
+enum GithubSyncStatus {
+  NOT_SYNCED
+  PENDING
+  SYNCED
+  FAILED
+}
+
 model ProgressEvent {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String         @map("user_id") @db.Uuid
-  problemId   String         @map("problem_id") @db.Uuid
-  status      ProgressStatus
-  notes       String?        @db.Text
-  completedAt DateTime       @default(now()) @map("completed_at") @db.Timestamp(6)
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String           @map("user_id") @db.Uuid
+  problemId        String           @map("problem_id") @db.Uuid
+  status           ProgressStatus
+  notes            String?          @db.Text
+  githubSyncStatus GithubSyncStatus @default(NOT_SYNCED) @map("github_sync_status")
+  githubRepo       String?          @map("github_repo") @db.VarChar(255)
+  githubFilePath   String?          @map("github_file_path") @db.VarChar(255)
+  githubSyncedAt   DateTime?        @map("github_synced_at") @db.Timestamp(6)
+  completedAt      DateTime         @default(now()) @map("completed_at") @db.Timestamp(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@index([userId, problemId])
+  @@index([githubSyncStatus])
   @@map("progress_events")
 }
 
@@ -116,4 +150,3 @@ model Session {
   @@index([expiresAt])
   @@map("sessions")
 }
-
