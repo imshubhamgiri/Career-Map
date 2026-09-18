@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { emailSchema, oauthRegisterSchema, loginSchema } from '../schemas/api.schema';
+import { emailSchema, oauthRegisterSchema, loginSchema, IngestUrlSchema } from '../schemas/api.schema';
 import { ErrorResponse } from '../types/index';
 import * as z from 'zod';
 
@@ -84,3 +84,11 @@ export const validateLoginBody = (
   validateSchema(loginSchema, req, res, next);
 };
 
+export const validateUrl = (
+  req: Request<{}, {}, { url: string }>,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
+
+  validateSchema( IngestUrlSchema, req, res,  next );
+};
