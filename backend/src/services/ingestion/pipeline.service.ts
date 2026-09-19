@@ -3,6 +3,8 @@ import { parseWithGemini, parseChunkWithGroq } from './llmParser.service';
 import { ChunkResult, ExtractedQuestion, PipelineResult } from '../../types';
 import { logger } from '../../utils/logger';
 import { env } from '../../config/env';
+// [PHASE 5 FIX]: Import canonical identity resolver for deduplication
+import { resolveCanonicalSlug } from '../../utils/canonicalSlug';
 
 const log = logger.child({ service: 'IngestionPipeline' });
 
@@ -115,10 +117,12 @@ export async function processDocumentPipeline(
   // Flatten problems array
   const rawProblems = results.flatMap((res) => res.problems || []);
 
-  // Deduplicate by URL (or by lowercase title if no URL exists)
+  // [PHASE 5 FIX]: Deduplicate using universal canonical identity instead of raw string comparison.
+  // This collapses URL variants (e.g. /problems/two-sum and /problems/two-sum/description)
+  // and cross-platform representations into the same canonical problem.
   const uniqueProblemsMap = new Map<string, ExtractedQuestion>();
   for (const item of rawProblems) {
-    const key = item.url ? item.url.toLowerCase().trim() : item.title.toLowerCase().trim();
+    const key = resolveCanonicalSlug(item.title, item.url);
     if (!uniqueProblemsMap.has(key)) {
       uniqueProblemsMap.set(key, item);
     }
