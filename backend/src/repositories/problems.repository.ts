@@ -1,5 +1,5 @@
 import prisma from '../config/db';
-import { Problem, RoadmapProblem, Difficulty } from '@prisma/client';
+import { Problem, RoadmapProblem, Difficulty, Prisma } from '@prisma/client';
 
 export interface CanonicalProblemInput {
   canonicalSlug: string;
@@ -24,10 +24,14 @@ export interface RoadmapProblemInput {
 export class ProblemsRepository {
   /**
    * Batch query 1: Fetch existing canonical problems by an array of canonical slugs.
+   * [PHASE 5 FIX]: Added optional `tx` transaction client parameter for atomic transactions.
    */
-  async findProblemsByCanonicalSlugs(slugs: string[]): Promise<Pick<Problem, 'id' | 'canonicalSlug'>[]> {
+  async findProblemsByCanonicalSlugs(
+    slugs: string[],
+    tx: Prisma.TransactionClient | typeof prisma = prisma
+  ): Promise<Pick<Problem, 'id' | 'canonicalSlug'>[]> {
     if (slugs.length === 0) return [];
-    return prisma.problem.findMany({
+    return tx.problem.findMany({
       where: {
         canonicalSlug: { in: slugs },
       },
@@ -40,10 +44,14 @@ export class ProblemsRepository {
 
   /**
    * Batch query 2: Create unmatched canonical problems and return their IDs.
+   * [PHASE 5 FIX]: Added optional `tx` transaction client parameter for atomic transactions.
    */
-  async createManyCanonicalProblems(data: CanonicalProblemInput[]): Promise<Pick<Problem, 'id' | 'canonicalSlug'>[]> {
+  async createManyCanonicalProblems(
+    data: CanonicalProblemInput[],
+    tx: Prisma.TransactionClient | typeof prisma = prisma
+  ): Promise<Pick<Problem, 'id' | 'canonicalSlug'>[]> {
     if (data.length === 0) return [];
-    return prisma.problem.createManyAndReturn({
+    return tx.problem.createManyAndReturn({
       data,
       select: {
         id: true,
@@ -54,10 +62,14 @@ export class ProblemsRepository {
 
   /**
    * Batch query 3: Bulk insert junction entries into roadmap_problems.
+   * [PHASE 5 FIX]: Added optional `tx` transaction client parameter for atomic transactions.
    */
-  async createRoadmapProblems(data: RoadmapProblemInput[]): Promise<{ count: number }> {
+  async createRoadmapProblems(
+    data: RoadmapProblemInput[],
+    tx: Prisma.TransactionClient | typeof prisma = prisma
+  ): Promise<{ count: number }> {
     if (data.length === 0) return { count: 0 };
-    return prisma.roadmapProblem.createMany({
+    return tx.roadmapProblem.createMany({
       data,
       skipDuplicates: true,
     });
