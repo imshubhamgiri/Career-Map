@@ -68,18 +68,18 @@ describe('Integration Tests: Ingest Endpoints via Supertest', () => {
     authToken = generateAccessToken(testUser);
   });
 
-  it('POST /api/ingest/url - rejects unauthenticated requests with 401', async () => {
+  it('POST /api/v1/ingest/url - rejects unauthenticated requests with 401', async () => {
     const res = await request(app)
-      .post('/api/ingest/url')
+      .post('/api/v1/ingest/url')
       .send({ url: 'https://docs.google.com/spreadsheets/d/test/edit' });
 
     expect(res.status).toBe(401);
     expect(res.body.error).toMatch(/token/i);
   });
 
-  it('POST /api/ingest/url - rejects invalid URL with 400 Validation failed', async () => {
+  it('POST /api/v1/ingest/url - rejects invalid URL with 400 Validation failed', async () => {
     const res = await request(app)
-      .post('/api/ingest/url')
+      .post('/api/v1/ingest/url')
       .set('Authorization', `Bearer ${authToken}`)
       .send({ url: 'invalid-url' });
 
