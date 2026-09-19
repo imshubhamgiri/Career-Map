@@ -18,9 +18,9 @@ export class RoadmapService {
   /**
    * Check if a roadmap already exists for a given source URL
    */
-  async roadmapExists(url: string): Promise<string | null> {
+  async roadmapExists(url: string): Promise<Roadmap | null> {
     const roadmap = await this.roadmapRepo.findCompletedBySourceUrl(url);
-    return roadmap ? roadmap.id : null;
+    return roadmap;
   }
 
   /**
