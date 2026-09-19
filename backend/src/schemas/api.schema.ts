@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const IngestUrlSchema = z.object({
   url: z.url('A valid URL is required'),
+  // [PHASE 1 FIX]: Title is optional; falls back to default title if omitted by client
+  title: z.string().min(1, 'Title cannot be empty').optional(),
 });
 
  const BaseUserSchema = z.object({

@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { ExtractedQuestionSchema, ChunkResultSchema } from '../schemas/problem.schema';
-import { emailSchema } from '../schemas/api.schema';
+import { emailSchema ,IngestUrlSchema} from '../schemas/api.schema';
 export type ExtractedQuestion = z.infer<typeof ExtractedQuestionSchema>;
 export type ChunkResult = z.infer<typeof ChunkResultSchema>;
 export type RegisterUserInput = z.infer<typeof emailSchema>;
+export type IngestUrlInput = z.infer<typeof IngestUrlSchema>;
 
 export interface PipelineSuccessResult {
   success: true;
@@ -15,6 +16,15 @@ export interface UserResponse {
   id?: string;
   name?: string;
   email: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  user?: T;
+  data?: T;
+  problems?: ExtractedQuestion[];
+  error?: string | { field: string; message: string }[];
 }
 
 export interface LoginResponse {
@@ -37,7 +47,7 @@ export interface PipelineFailureResult {
 }
 
 
-export interface ErrorResponse {
+export interface ErrorResponse extends ApiResponse<never> {
 success: false;
 message: string;
 error: string | { field: string; message: string }[];
