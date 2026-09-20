@@ -30,6 +30,8 @@ Table users {
   email varchar [unique, not null]
   name varchar
   password_hash varchar [note: 'Null for OAuth users, hashed string for email/password auth']
+  is_email_verified boolean [default: false, not null]
+  email_verified_at timestamp
   created_at timestamp [default: `now()`, not null]
   updated_at timestamp [default: `now()`, not null]
 }
@@ -55,7 +57,6 @@ Table roadmaps {
 Table problems {
   id uuid [pk, default: `gen_random_uuid()`]
   roadmap_id uuid [not null]
-  canonical_slug varchar [unique, not null, note: 'Universal concept slug e.g. two-sum, trapping-rain-water']
   title varchar [not null]
   topic varchar [not null]
   difficulty Difficulty [not null, default: 'UNKNOWN']
@@ -139,4 +140,5 @@ Ref: roadmap_problems.problem_id > problems.id [delete: cascade]
 Ref: progress_events.user_id > users.id [delete: cascade]
 Ref: progress_events.problem_id > problems.id [delete: cascade]
 Ref: sessions.user_id > users.id [delete: cascade]
+
 
