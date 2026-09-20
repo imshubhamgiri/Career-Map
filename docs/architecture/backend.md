@@ -22,19 +22,26 @@ flowchart TD
 backend/src/
 ├── app.ts                 # Express application configuration & middleware pipeline
 ├── server.ts              # Server startup & graceful shutdown
-├── config/                # Environment configuration (env.ts, db.ts, google.ts)
+├── config/                # Environment, database, and Redis configuration (env.ts, db.ts, redis.ts)
 ├── controllers/           # HTTP request handlers (user.controller.ts, ingest.controller.ts)
 ├── errors/                # AppError class and centralized errorHandler middleware
 ├── middleware/            # Auth guard, Multer upload, Zod body/query validation
+├── queues/                # BullMQ queue producers (email.queue.ts, ingestion.queue.ts)
 ├── repositories/          # Data access layer (user.repository.ts, roadmap.repository.ts)
 ├── routes/                # Central route tree (/api/v1/auth, /api/v1/ingest)
 ├── schemas/               # Zod validation schemas for requests and LLM outputs
-├── services/              # Core business services (user.service.ts, roadmap.service.ts)
+├── services/              # Core business services
+│   ├── email/             # Transactional email service (Resend / Dev logger)
 │   ├── extractors/        # Source extractors (PDF, Google Sheets, Google Docs, Web)
-│   └── ingestion/         # Pipeline orchestration, chunking, LLM parsing
-├── tests/                 # Automated test suites (auth.test.ts, test.ts)
+│   ├── ingestion/         # Pipeline orchestration, chunking, LLM parsing
+│   ├── otp/               # Ephemeral Redis OTP storage & atomic rate limiting
+│   ├── problems.service.ts
+│   ├── roadmap.service.ts
+│   └── user.service.ts
+├── tests/                 # Vitest automated test suites (auth.test.ts, ingest.test.ts, phase5.test.ts)
 ├── types/                 # Shared TypeScript interfaces & types
-└── utils/                 # Utilities (crypto.ts, tokens.ts, logger.ts)
+├── utils/                 # Utilities (crypto.ts, tokens.ts, logger.ts, canonicalSlug.ts)
+└── workers/               # BullMQ background workers (index.ts, email.worker.ts, ingestion.worker.ts)
 ```
 
 ## Key Architectural Patterns
@@ -42,8 +49,8 @@ backend/src/
 ### 1. Thin Controllers
 Controllers are responsible only for:
 1. Extracting parameters from `req.body`, `req.query`, or `req.file`.
-2. Calling the appropriate service function.
-3. Returning the response with standard HTTP status codes.
+2. Calling the appropriate service function or enqueueing a background job.
+3. Returning the response with standard HTTP status codes (< 20ms response time).
 4. Catching unexpected errors and delegating to `next(err)`.
 
 ### 2. Service Separation
@@ -51,6 +58,8 @@ Controllers are responsible only for:
 - Pipeline orchestration and batching logic reside in `src/services/ingestion/pipeline.service.ts`.
 - LLM interaction and prompt structuring are encapsulated in `src/services/ingestion/llmParser.service.ts`.
 - Identity and authentication orchestration reside in `src/services/user.service.ts`.
+- Ephemeral OTP lifecycle and rate-limiting reside in `src/services/otp/redisOtp.service.ts`.
+- Transactional email delivery resides in `src/services/email/email.service.ts`.
 
 ### 3. Repository Layer
 - Encapsulates all Prisma ORM operations and database queries.
@@ -61,14 +70,21 @@ Controllers are responsible only for:
 - **Stateless Access Tokens**: Short-lived JWTs (15 min) carrying `userId` and `email` for low-latency authorization. Supported via HTTP cookies and `Authorization: Bearer <token>` headers.
 - **Stateful Opaque Refresh Tokens**: Cryptographically random 40-byte hex strings stored as SHA-256 hashes in PostgreSQL `sessions`.
 - **Refresh Token Rotation & Reuse Detection**: Rotating a refresh token revokes the previous token while preserving the `token_family`. If a compromised or revoked token is reused, all sessions in that family are immediately revoked.
-- **Transport Security**: Transported via `httpOnly`, `sameSite: strict` signed cookies scoped to `/api/v1/auth`.
+- **Ephemeral Redis OTP Storage**: Short-lived verification codes (15-min TTL) and 60-second cooldown locks are managed directly in Redis, eliminating PostgreSQL table bloat.
+- **Zero-Friction Auto-Login**: Upon submitting a valid OTP to `/verify-email`, the API immediately marks the user verified and issues access/refresh tokens in that response.
 
-### 5. Error Handling
+### 5. Background Queues & Asynchronous Processing (BullMQ & Redis)
+- Heavy operations (sending emails over network, scraping documents, chunking, and calling LLM APIs) are completely decoupled from Express HTTP threads.
+- **Queue Producers** (`src/queues/`) push jobs to Redis with exponential backoff retries.
+- **Worker Pool** (`src/workers/`) runs in a separate process (`npm run worker`) consuming and executing jobs concurrently with graceful termination handling (`SIGINT`/`SIGTERM`).
+
+### 6. Error Handling
 - Throw `AppError(message, statusCode)` for predictable client errors.
 - Uncaught exceptions or programming bugs are handled uniformly in `src/errors/errorHandler.ts`, returning a clean `{ success: false, error: message }` payload while logging detailed stack traces via Pino.
 
-### 6. Logging
+### 7. Logging
 - Pino provides fast, structured JSON logging.
 - HTTP requests are automatically logged with request IDs via `pino-http`.
+
 
 
