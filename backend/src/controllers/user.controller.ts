@@ -14,8 +14,50 @@ export class UserController {
             const user = await this.userService.registerUser(req.body);
             res.status(201).json({
                 success: true,
-                message: 'User registered successfully',
+                message: 'User registered successfully. Please verify your email with the 6-digit code sent.',
                 user,
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    verifyEmail = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const { user, accessToken, refreshToken } = await this.userService.verifyEmail({
+                email: req.body.email,
+                code: req.body.code,
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+            });
+
+            // Zero-Friction: Set dual-token cookies immediately on verification
+            setTokenCookies(res, accessToken, refreshToken);
+            res.status(200).json({
+                success: true,
+                message: 'Email verified successfully',
+                user,
+                accessToken,
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    resendVerification = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const result = await this.userService.resendVerification(req.body.email);
+            res.status(200).json({
+                success: true,
+                message: result.message,
             });
         } catch (err) {
             next(err);
