@@ -5,6 +5,7 @@ import { logger } from '../../utils/logger';
 import { env } from '../../config/env';
 // [PHASE 5 FIX]: Import canonical identity resolver for deduplication
 import { resolveCanonicalSlug } from '../../utils/canonicalSlug';
+import { APICallError } from 'ai';
 
 const log = logger.child({ service: 'IngestionPipeline' });
 
@@ -19,14 +20,22 @@ export async function processDocumentPipeline(
   // ==========================================
   // Tier 1: Try Google Gemini (Handles full sheets or large chunks)
   // ==========================================
+  let models = [
+    'gemini-3.8-flash',       // Absolute best workhorse model (GA September 2026). 1M+ token context window. Engineered for long-horizon software engineering and code generation.
+    'gemini-3.7-flash',       // Prior generation favorite for developers; known for rapid code generation and multi-step tasks.
+    'gemini-3.5-flash-lite',          // Stable fallback from previous generation
+  ];
+
   if (env.GEMINI_API_KEY || env.GOOGLE_API_KEY) {
+  for(let i=0; i<models.length; i++) {
     try {
       if (rawLines.length <= 350) {
         // Up to 350 lines (300+ questions): pass in a single shot with 32,000 output tokens!
         log.info({ totalLines: rawLines.length }, 'Attempting single-shot extraction via Gemini 3.6 Flash (32k token buffer)');
-        const res = await parseWithGemini(rawLines);
+        const res = await parseWithGemini(rawLines , models[i]);
         log.info({ problemsFound: res.problems?.length || 0 }, 'Gemini single-shot extraction succeeded');
         results = [res];
+        break; // Exit the model rotation loop on success
       } else {
         // Very large document: chunk in blocks of 150 lines
         const geminiChunks = chunkNormalizedText(rawLines, 150, 5);
@@ -46,7 +55,31 @@ export async function processDocumentPipeline(
           }
         }
       }
+      break; // Exit the model rotation loop on success
     } catch (err: any) {
+      let shouldRotate = false;
+      let code = undefined;
+    
+      // 2. Safely parse via Vercel AI SDK Type-Guard
+      if (APICallError.isInstance(err)) {
+        code = err.statusCode;
+        if (code !== undefined && [429, 503, 504].includes(code)) {
+          shouldRotate = true;
+        }
+      }
+    
+      // 3. Robust String Fallback 
+      // Captures cases where the provider maps high demand without an HTTP code
+      const errorMsg = err?.message || "";
+      if (errorMsg.includes("high demand") || errorMsg.includes("temporary")) {
+        shouldRotate = true;
+      }
+    
+      // 4. Handle rotation or drop down to Groq pipeline
+      if (shouldRotate && i + 1 < models.length) {
+        log.warn(`Model ${models[i]} throttled (Code: ${code || 'High-Demand String'}). Rotating...`);
+        continue; // Smoothly moves to the next Gemini model
+      }
       log.warn(
         { err: err?.message, code: err?.statusCode || err?.status },
         'Gemini extraction failed or rate-limited. Falling back to Groq chunked pipeline'
@@ -54,6 +87,7 @@ export async function processDocumentPipeline(
       results = []; // Reset results to trigger Groq fallback
     }
   }
+}
 
   // ==========================================
   // Tier 2: Fallback to Groq Chunked Pipeline
