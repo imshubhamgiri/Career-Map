@@ -14,6 +14,12 @@ const envSchema = z.object({
   GOOGLE_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   DATABASE_URL: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('Career OS <onboarding@resend.dev>'),
+  REDIS_HOST: z.string().default('127.0.0.1'),
+  REDIS_PORT: z.string().default('6379').transform((val) => parseInt(val, 10)),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_URL: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
