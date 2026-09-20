@@ -22,7 +22,10 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   const token = extractToken(req);
 
   if (!token) {
-    return res.status(401).json({ error: 'Access token missing' });
+    return res.status(401).json({
+       success: false,
+       error: 'Access token missing'
+       });
   }
 
   try {
