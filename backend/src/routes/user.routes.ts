@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { oAuthRegisterBody, validateRegisterBody, validateLoginBody } from '../middleware/validate.middleware';
+import {
+  oAuthRegisterBody,
+  validateRegisterBody,
+  validateLoginBody,
+  validateVerifyEmailBody,
+  validateResendVerificationBody,
+} from '../middleware/validate.middleware';
 import { UserController } from '../controllers/user.controller';
 import { UserService } from '../services/user.service';
 import { UserRepository } from '../repositories/user.repository';
@@ -12,6 +18,8 @@ const userService = new UserService(userRepository);
 const userController = new UserController(userService);
 
 router.post('/register', validateRegisterBody, userController.registerUser);
+router.post('/verify-email', validateVerifyEmailBody, userController.verifyEmail);
+router.post('/resend-verification', validateResendVerificationBody, userController.resendVerification);
 router.post('/login', validateLoginBody, userController.loginUser);
 router.post('/logout', userController.logoutUser);
 router.post('/refresh', userController.rotateRefreshToken);
