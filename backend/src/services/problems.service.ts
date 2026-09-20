@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { ProblemsRepository, CanonicalProblemInput, RoadmapProblemInput } from '../repositories/problems.repository';
 import { ExtractedQuestionSchema } from '../schemas/problem.schema';
 import { resolveCanonicalSlug } from '../utils/canonicalSlug';
+import { logger } from '../utils/logger';
+
+let log = logger.child({ service: 'ProblemService' });
 
 export type ExtractedQuestionInput = z.infer<typeof ExtractedQuestionSchema>;
 
@@ -29,9 +32,11 @@ export class ProblemService {
    */
   async saveExtractedProblems(roadmapId: string, extractedData: ExtractedQuestionInput[]): Promise<void> {
     if (!extractedData || extractedData.length === 0) {
+      log.warn({ roadmapId }, 'No extracted problems to save for this roadmap ingestion');
       return;
     }
-
+    
+    log.info({ roadmapId, count: extractedData.length }, 'Saving extracted problems for roadmap ingestion');
     // Step 1: In-memory identity resolution & canonical slug extraction
     const itemsWithSlugs = extractedData.map((item, idx) => ({
       ...item,
@@ -60,6 +65,7 @@ export class ProblemService {
     // [PHASE 5 FIX]: Wrap DB operations in an atomic transaction to ensure atomicity
     await prisma.$transaction(async (tx) => {
       // Step 2: Batch Query 1 - Find which canonical problems already exist
+      log.info({ roadmapId, incomingSlugsCount: incomingSlugs.length }, 'Checking for existing canonical problems');
       const existingProblems = await this.problemRepo.findProblemsByCanonicalSlugs(incomingSlugs, tx);
 
       // Build fast O(1) lookup map: canonicalSlug -> problemId
@@ -83,12 +89,16 @@ export class ProblemService {
           };
         });
 
+        log.info({ roadmapId, newCanonicalCount: newCanonicalProblems.length }, 'Creating new canonical problems');
+
         // Batch Query 2 - Create new canonical problems and retrieve generated IDs
         const newlyCreated = await this.problemRepo.createManyCanonicalProblems(newCanonicalProblems, tx);
         for (const np of newlyCreated) {
           slugToIdMap.set(np.canonicalSlug, np.id);
         }
       }
+
+      log.info({ roadmapId, totalUniqueProblems: slugToIdMap.size }, 'Total unique canonical problems resolved for roadmap');
 
       // Step 4: Batch Query 3 - Bulk insert junction entries into roadmap_problems
       // [PHASE 5 FIX]: Map over uniqueItemsForRoadmap so every (roadmapId, problemId) pair is guaranteed unique
@@ -102,6 +112,8 @@ export class ProblemService {
         originalDifficulty: difficultyMapper[item.difficulty] ?? Difficulty.UNKNOWN,
         orderIndex: item.orderIndex,
       }));
+
+      log.info({ roadmapId, junctionInsertCount: roadmapProblemsData.length }, 'Inserting roadmap_problems junction entries');
 
       await this.problemRepo.createRoadmapProblems(roadmapProblemsData, tx);
     });
