@@ -21,14 +21,14 @@ Rules:
 /**
  * Parses medium-to-large chunks (35-45 lines) using Gemini 3.6 Flash (1M TPM, 8,192 max output tokens).
  */
-export async function parseWithGemini(lines: string[]): Promise<ChunkResult> {
+export async function parseWithGemini(lines: string[] , model?: any): Promise<ChunkResult> {
   if (!google) {
     throw new Error('Neither GEMINI_API_KEY nor GOOGLE_API_KEY is configured.');
   }
 
   const textPayload = lines.join('\n');
   const { output } = await generateText({
-    model: google('gemini-3.6-flash'),
+    model: google(model || 'gemini-3.6-flash'),
     maxOutputTokens: 32000,
     output: Output.object({
       schema: ChunkResultSchema,
