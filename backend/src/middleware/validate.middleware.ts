@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { emailSchema, oauthRegisterSchema, loginSchema, IngestUrlSchema } from '../schemas/api.schema';
+import { emailSchema, oauthRegisterSchema, loginSchema, IngestUrlSchema, verifyEmailSchema, resendVerificationSchema } from '../schemas/api.schema';
 import { ErrorResponse } from '../types/index';
 import * as z from 'zod';
 
@@ -92,3 +92,20 @@ export const validateUrl = (
 
   validateSchema( IngestUrlSchema, req, res,  next );
 };
+
+export const validateVerifyEmailBody = (
+  req: Request<{}, {}, typeof verifyEmailSchema>,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
+  validateSchema(verifyEmailSchema, req, res, next);
+};
+
+export const validateResendVerificationBody = (
+  req: Request<{}, {}, typeof resendVerificationSchema>,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
+  validateSchema(resendVerificationSchema, req, res, next);
+};
+
