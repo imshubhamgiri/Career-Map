@@ -29,6 +29,16 @@ export class UserRepository {
         });
     }
 
+    markEmailVerified(userId: string): Promise<User> {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+                isEmailVerified: true,
+                emailVerifiedAt: new Date(),
+            },
+        });
+    }
+
     deleteSession(userId: string, hashedToken: string): Promise<Prisma.BatchPayload> {
         return prisma.session.deleteMany({
             where: {
@@ -90,4 +100,3 @@ export class UserRepository {
         });
     }
 }
-
