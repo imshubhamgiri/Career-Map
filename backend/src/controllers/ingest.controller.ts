@@ -7,6 +7,11 @@ import { RoadmapService } from '../services/roadmap.service';
 import { ProblemService } from '../services/problems.service';
 import { ApiResponse, IngestUrlInput } from '../types/index';
 import { Roadmap, RoadmapStatus } from '@prisma/client';
+import { logger } from '../utils/logger';
+import { queueRoadmapIngestion } from '../queues/ingestion.queue';
+
+let log = logger.child({ service: 'IngestController' });
+
 
 const roadmapService = new RoadmapService();
 const problemService = new ProblemService();
@@ -27,7 +32,7 @@ function detectSourceType(url: string): string {
 
 export async function ingestUrl(
   req: Request<{}, {}, IngestUrlInput>,
-  res: Response<ApiResponse<string>>,
+  res: Response<ApiResponse<Roadmap>>,
   next: NextFunction
 ): Promise<void> {
   let createdRoadmap: Roadmap | null = null;
@@ -39,13 +44,13 @@ export async function ingestUrl(
     // 1. Clone-on-Ingest check (Phase 2)
     const roadmapexists = await roadmapService.roadmapExists(url);
     if (roadmapexists && roadmapexists.userId === userId) {
-      res.status(200).json({ success: true, message: 'roadmap already exists', data: roadmapexists.id });
+      res.status(200).json({ success: true, message: 'roadmap already exists', data: roadmapexists });
       return;
     }
     if (roadmapexists) {
       // [PHASE 2 FIX]: Pass custom title if provided, and return cloned roadmap ID
       const newRoadmap = await roadmapService.cloneRoadmap(roadmapexists.id, userId, title);
-      res.status(201).json({ success: true, message: 'roadmap created successfully', data: newRoadmap.id });
+      res.status(201).json({ success: true, message: 'roadmap created successfully', data: newRoadmap });
       return;
     }
 
@@ -60,58 +65,19 @@ export async function ingestUrl(
       status: RoadmapStatus.PROCESSING,
     });
 
-    // 2. Extract and parse document
-    const rawLines = await extractTextFromUrl(url);
-    const result = await processDocumentPipeline(rawLines);
-
-    // [PHASE 3 FIX]: Pipeline quality gate - handle pipeline failure
-    if (!result.success) {
-      await roadmapService.updateStatus(
-        createdRoadmap.id,
-        RoadmapStatus.FAILED,
-        result.message || 'Pipeline processing failed'
-      );
-      res.status(422).json({
-        success: false,
-        message: result.message || 'Pipeline processing failed',
-        data: createdRoadmap.id,
-      });
-      return;
-    }
-
-    // [PHASE 3 FIX]: Pipeline quality gate - handle 0 extracted questions
-    if (result.data.length === 0) {
-      await roadmapService.updateStatus(
-        createdRoadmap.id,
-        RoadmapStatus.FAILED,
-        'No DSA problems detected in document'
-      );
-      res.status(422).json({
-        success: false,
-        message: 'No coding problems could be detected in this document.',
-        data: createdRoadmap.id,
-      });
-      return;
-    }
-
-    // 3. Persist extracted problems (Phase 5 deduplication & transaction)
-    await problemService.saveExtractedProblems(createdRoadmap.id, result.data);
-
-    // [PHASE 3 FIX]: Transition status to COMPLETED upon successful persistence
-    await roadmapService.updateStatus(createdRoadmap.id, RoadmapStatus.COMPLETED);
+    // 2. Offload extraction and parsing to background BullMQ worker
+    await queueRoadmapIngestion({
+      roadmapId: createdRoadmap.id,
+      url,
+      userId,
+    });
 
     res.status(201).json({
       success: true,
       message: 'created Roadmap',
-      data: createdRoadmap.id,
+      data: createdRoadmap,
     });
   } catch (err) {
-    // [PHASE 3 FIX]: Mark roadmap as FAILED in catch block so it is not left orphaned in DB
-    if (createdRoadmap) {
-      await roadmapService
-        .updateStatus(createdRoadmap.id, RoadmapStatus.FAILED, (err as Error).message)
-        .catch(() => {});
-    }
     next(err);
   }
 }
