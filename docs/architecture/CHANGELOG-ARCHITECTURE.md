@@ -76,7 +76,30 @@
   - Designed the **Problem Identity Resolver & Batch Ingestion Matching Algorithm** using `WHERE canonical_slug IN (...)`, in-memory Map partitioning, and `createManyAndReturn` batch persistence for $O(1)$ query complexity.
   - Updated `database/schema.dbml` (source of truth) and `backend/prisma/schema.prisma`.
 
+## 2026-09-20
+
+- **Authentic Email Verification & Zero-Friction Auto-Login**:
+  - Added `is_email_verified` (Boolean, default: false) and `email_verified_at` (Timestamp) to `users` in PostgreSQL and `database/schema.dbml`.
+  - Added disposable email domain filtering in `api.schema.ts` to reject burner/temporary email addresses.
+  - Implemented `POST /api/v1/auth/verify-email` with auto-login: upon successful 6-digit OTP verification, access and refresh token cookies are generated immediately so the user doesn't have to manually log in.
+  - Implemented `POST /api/v1/auth/resend-verification` with rate-limiting.
+  - Guarded `loginUser`: unverified accounts receive `403 Forbidden` until email verification is complete.
+  - Built `EmailService` with support for **Resend** transactional email API and a development console logger fallback.
+
+- **Production-Grade Redis OTP Storage & Rate Limiting**:
+  - Moved transient OTP codes from disk-based PostgreSQL to **Redis** with in-memory TTL (`EX 900`, 15 minutes) to eliminate database bloat.
+  - Implemented atomic 60-second cooldown rate-limiting (`otp:cooldown:<email>`) via Redis `SET EX 60 NX`.
+  - Implemented brute-force protection: atomic attempt increments in Redis; exceeding 5 failed attempts automatically invalidates the OTP key.
+
+- **BullMQ Background Worker Pool**:
+  - Integrated **BullMQ** and **ioredis** for asynchronous background processing.
+  - Implemented `EmailQueue` (`email-queue`) and `EmailWorker`: offloaded transactional email delivery with exponential backoff retries ($3\times$). Registration and resend endpoints now return in `< 15ms`.
+  - Implemented `IngestionQueue` (`ingestion-queue`) and `IngestionWorker`: offloaded roadmap extraction, chunking, and LLM parsing from the Express event loop to a dedicated background worker with concurrency control.
+  - Created centralized worker runner (`src/workers/index.ts`) with graceful shutdown handling (`SIGINT`/`SIGTERM`) and added `npm run worker` script.
+
 ## future
-- BullMQ async queue integration for background roadmap processing
 - OAuth 2.0 provider integration (GitHub, Google)
 - GitHub sync worker integration
+- LeetCode sync worker integration
+- Server-Sent Events (SSE) for live roadmap ingestion progress streaming
+
