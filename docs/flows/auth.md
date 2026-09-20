@@ -88,7 +88,9 @@ sequenceDiagram
 
 | Method | Endpoint | Auth Required | Request Body / Cookies | Success Response |
 | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/register` | None | `{ name, email, password }` | `201 Created` + User info |
+| `POST` | `/api/v1/auth/register` | None | `{ name, email, password }` | `201 Created` + User info (`isEmailVerified: false`) |
+| `POST` | `/api/v1/auth/verify-email` | None | `{ email, code }` | `200 OK` + HTTP cookies (Auto-Login!) + User info |
+| `POST` | `/api/v1/auth/resend-verification` | None | `{ email }` | `200 OK` + Success message |
 | `POST` | `/api/v1/auth/login` | None | `{ email, password }` | `200 OK` + HTTP cookies + User info |
 | `POST` | `/api/v1/auth/refresh` | Signed Cookie | Cookie: `refresh_token` | `200 OK` + rotated cookies |
 | `POST` | `/api/v1/auth/logout` | Optional | Cookie: `refresh_token` | `200 OK` + cleared cookies |
