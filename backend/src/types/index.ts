@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { ExtractedQuestionSchema, ChunkResultSchema } from '../schemas/problem.schema';
-import { emailSchema ,IngestUrlSchema} from '../schemas/api.schema';
+import { emailSchema, IngestUrlSchema, verifyEmailSchema, resendVerificationSchema } from '../schemas/api.schema';
 export type ExtractedQuestion = z.infer<typeof ExtractedQuestionSchema>;
 export type ChunkResult = z.infer<typeof ChunkResultSchema>;
 export type RegisterUserInput = z.infer<typeof emailSchema>;
 export type IngestUrlInput = z.infer<typeof IngestUrlSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 
 export interface PipelineSuccessResult {
   success: true;
@@ -16,6 +18,7 @@ export interface UserResponse {
   id?: string;
   name?: string;
   email: string;
+  isEmailVerified?: boolean;
 }
 
 export interface ApiResponse<T> {
