@@ -6,25 +6,60 @@ export const IngestUrlSchema = z.object({
   title: z.string().min(1, 'Title cannot be empty').optional(),
 });
 
- const BaseUserSchema = z.object({
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  'mailinator.com',
+  'tempmail.com',
+  '10minutemail.com',
+  'guerrillamail.com',
+  'throwawaymail.com',
+  'yopmail.com',
+  'sharklasers.com',
+  'dispostable.com',
+  'trashmail.com',
+  'fakeinbox.com',
+]);
+
+const emailValidation = z
+  .string()
+  .email('A valid email is required')
+  .refine(
+    (email) => {
+      const domain = email.split('@')[1]?.toLowerCase();
+      return !domain || !DISPOSABLE_EMAIL_DOMAINS.has(domain);
+    },
+    { message: 'Disposable or temporary email addresses are not permitted' }
+  );
+
+const BaseUserSchema = z.object({
   name: z.string().min(3, 'Username must be at least 3 characters long'),
-  email: z.email('A valid email is required'),
+  email: emailValidation,
 });
 
 export const emailSchema = BaseUserSchema.extend({ 
-  password: z.string().min(6, 'Password must be at least 6 characters long')
- });
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+});
 
- export const oauthRegisterSchema = BaseUserSchema.extend({
+export const oauthRegisterSchema = BaseUserSchema.extend({
   oauthProvider: z.enum(['google', 'github', 'facebook']),
   oauthId: z.string().min(1, 'OAuth ID is required'),
 });
 
 export const loginSchema = z.object({
-  email: z.email('A valid email is required'),
+  email: z.string().email('A valid email is required'),
   password: z.string().min(1, 'Password is required'),
+});
+
+export const verifyEmailSchema = z.object({
+  email: z.string().email('A valid email is required'),
+  code: z.string().regex(/^\d{6}$/, 'Verification code must be a 6-digit number'),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email('A valid email is required'),
 });
 
 export type IngestUrlInput = z.infer<typeof IngestUrlSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 
