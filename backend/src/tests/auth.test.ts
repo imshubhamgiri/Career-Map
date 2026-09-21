@@ -2,7 +2,7 @@ import { describe, it, expect, afterAll } from 'vitest';
 import prisma from '../config/db';
 import { redisClient } from '../config/redis';
 import { UserRepository } from '../repositories/user.repository';
-import { UserService } from '../services/user.service';
+import { AuthService } from '../services/auth.service';
 import { redisOtpService } from '../services/otp/redisOtp.service';
 import { hashPassword, verifyPassword, generateOpaqueToken, hashOpaqueToken } from '../utils/crypto';
 import { generateAccessToken, ACCESS_TOKEN_SECRET } from '../utils/tokens';
@@ -17,7 +17,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
         queuedEmails.push({ to: data.to, code: data.code });
     };
 
-    const userService = new UserService(userRepository, redisOtpService, mockEmailDispatcher);
+    const authService = new AuthService(userRepository, redisOtpService, mockEmailDispatcher);
 
     const testEmail = `auth_test_${Date.now()}@career-os.dev`;
     const testPassword = 'SecurePassword123!';
@@ -61,7 +61,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
 
     describe('Registration & Redis OTP Verification Lifecycle', () => {
         it('registers a new user as unverified and stores OTP in Redis with 15m TTL', async () => {
-            const res = await userService.registerUser({
+            const res = await authService.registerUser({
                 name: testName,
                 email: testEmail,
                 password: testPassword,
@@ -91,7 +91,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
 
         it('rejects duplicate registration with ConflictError (409)', async () => {
             await expect(
-                userService.registerUser({
+                authService.registerUser({
                     name: testName,
                     email: testEmail,
                     password: testPassword,
@@ -101,7 +101,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
 
         it('rejects login for unverified user with ForbiddenError (403)', async () => {
             await expect(
-                userService.loginUser({
+                authService.loginUser({
                     email: testEmail,
                     password: testPassword,
                 })
@@ -110,7 +110,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
 
         it('rejects verification with an invalid code and increments attempts in Redis', async () => {
             await expect(
-                userService.verifyEmail({
+                authService.verifyEmail({
                     email: testEmail,
                     code: '999999',
                 })
@@ -122,7 +122,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
         });
 
         it('verifies email with valid code, clears Redis key, and performs frictionless auto-login', async () => {
-            const res = await userService.verifyEmail({
+            const res = await authService.verifyEmail({
                 email: testEmail,
                 code: validVerificationCode,
                 ipAddress: '127.0.0.1',
@@ -147,7 +147,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
 
         it('rejects duplicate verification when already verified', async () => {
             await expect(
-                userService.verifyEmail({
+                authService.verifyEmail({
                     email: testEmail,
                     code: validVerificationCode,
                 })
@@ -155,7 +155,7 @@ describe('Authentication & Redis OTP Verification Flow', () => {
         });
 
         it('allows login now that user is verified', async () => {
-            const loginRes = await userService.loginUser({
+            const loginRes = await authService.loginUser({
                 email: testEmail,
                 password: testPassword,
                 ipAddress: '127.0.0.1',
@@ -170,13 +170,13 @@ describe('Authentication & Redis OTP Verification Flow', () => {
         });
 
         it('rejects resending verification code when user is already verified', async () => {
-            await expect(userService.resendVerification(testEmail)).rejects.toThrow('Email is already verified.');
+            await expect(authService.resendVerification(testEmail)).rejects.toThrow('Email is already verified.');
         });
     });
 
     describe('Session Management & Refresh Token Rotation', () => {
         it('rotates refresh token and issues new access token', async () => {
-            const rotated = await userService.rotateRefreshToken(activeRefreshToken, '127.0.0.1', 'vitest-agent');
+            const rotated = await authService.rotateRefreshToken(activeRefreshToken, '127.0.0.1', 'vitest-agent');
             expect(rotated.accessToken).toBeDefined();
             expect(rotated.refreshToken).toBeDefined();
             expect(rotated.refreshToken).not.toBe(activeRefreshToken);
@@ -186,13 +186,13 @@ describe('Authentication & Redis OTP Verification Flow', () => {
 
             // Reuse Attack Defense: Reusing the old token must revoke the entire session family
             await expect(
-                userService.rotateRefreshToken(oldToken, '127.0.0.1', 'vitest-agent')
+                authService.rotateRefreshToken(oldToken, '127.0.0.1', 'vitest-agent')
             ).rejects.toThrow('Invalid refresh token: reuse detected.');
         });
 
         it('logs out and deletes active session', async () => {
-            await userService.logoutUser(activeRefreshToken, createdUserId);
-            const user = await userService.getUserById(createdUserId);
+            await authService.logoutUser(activeRefreshToken, createdUserId);
+            const user = await authService.getUserById(createdUserId);
             expect(user.id).toBe(createdUserId);
         });
     });

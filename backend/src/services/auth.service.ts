@@ -1,14 +1,14 @@
 import crypto from 'crypto';
 import ms from 'ms';
 import { UserRepository } from '../repositories/user.repository';
-import { RegisterUserInput, UserResponse, LoginResponse, VerifyEmailInput } from '../types';
+import { RegisterUserInput, UserResponse, LoginResponse, VerifyEmailInput, LoginInput } from '../types';
 import { ConflictError, NotFoundError, UnauthorizedError, BadRequestError, ForbiddenError } from '../errors/appError';
 import { generateOpaqueToken, hashOpaqueToken, hashPassword, verifyPassword } from '../utils/crypto';
 import { generateAccessToken } from '../utils/tokens';
 import { redisOtpService as defaultRedisOtpService, RedisOtpService } from './otp/redisOtp.service';
 import { queueVerificationEmail as defaultQueueVerificationEmail } from '../queues/email.queue';
 
-export class UserService {
+export class AuthService {
     constructor(
         private userRepository: UserRepository,
         private otpService: RedisOtpService = defaultRedisOtpService,
@@ -170,9 +170,7 @@ export class UserService {
         password,
         ipAddress,
         userAgent,
-    }: {
-        email: string;
-        password: string;
+    }: LoginInput & {
         ipAddress?: string;
         userAgent?: string;
     }): Promise<LoginResponse> {
@@ -297,3 +295,4 @@ export class UserService {
         };
     }
 }
+
