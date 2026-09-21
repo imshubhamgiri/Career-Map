@@ -1,23 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
-import { emailSchema, oauthRegisterSchema, loginSchema, IngestUrlSchema, verifyEmailSchema, resendVerificationSchema } from '../schemas/api.schema';
-import { ErrorResponse } from '../types/index';
+import {
+  emailSchema,
+  oauthRegisterSchema,
+  loginSchema,
+  IngestUrlSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+} from '../schemas/api.schema';
+import {
+  ErrorResponse,
+  RegisterUserInput,
+  OAuthRegisterInput,
+  LoginInput,
+  IngestUrlInput,
+  VerifyEmailInput,
+  ResendVerificationInput,
+} from '../types/index';
 import * as z from 'zod';
 
-
-// const ErrorResponseSchema = z.object({
-//   success: z.literal(false),
-//   message: z.string(),
-//   error: z.array(
-//     z.object({
-//       field: z.string(),
-//       message: z.string(),
-//     })
-//   ),
-// });
-
-// type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
-
-export function validateBody(schema: z.ZodType<any>) {
+export function validateBody<T>(schema: z.ZodType<T>) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
@@ -27,7 +28,6 @@ export function validateBody(schema: z.ZodType<any>) {
     next();
   };
 }
-
 
 const validateSchema = <T>(
   schema: z.ZodType<T>,
@@ -55,21 +55,16 @@ const validateSchema = <T>(
   next();
 };
 
-
-
-
 export const validateRegisterBody = (
-  req:Request<{}, {}, typeof emailSchema>,
-   res: Response<ErrorResponse>,
-    next: NextFunction
-  ):
-   void =>
- {
+  req: Request<{}, {}, RegisterUserInput>,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): void => {
   validateSchema(emailSchema, req, res, next);
-}
+};
 
 export const oAuthRegisterBody = (
-  req: Request<{}, {}, typeof oauthRegisterSchema>,
+  req: Request<{}, {}, OAuthRegisterInput>,
   res: Response<ErrorResponse>,
   next: NextFunction
 ): void => {
@@ -77,7 +72,7 @@ export const oAuthRegisterBody = (
 };
 
 export const validateLoginBody = (
-  req: Request<{}, {}, typeof loginSchema>,
+  req: Request<{}, {}, LoginInput>,
   res: Response<ErrorResponse>,
   next: NextFunction
 ): void => {
@@ -85,16 +80,15 @@ export const validateLoginBody = (
 };
 
 export const validateUrl = (
-  req: Request<{}, {}, { url: string }>,
+  req: Request<{}, {}, IngestUrlInput>,
   res: Response<ErrorResponse>,
   next: NextFunction
 ): void => {
-
-  validateSchema( IngestUrlSchema, req, res,  next );
+  validateSchema(IngestUrlSchema, req, res, next);
 };
 
 export const validateVerifyEmailBody = (
-  req: Request<{}, {}, typeof verifyEmailSchema>,
+  req: Request<{}, {}, VerifyEmailInput>,
   res: Response<ErrorResponse>,
   next: NextFunction
 ): void => {
@@ -102,10 +96,9 @@ export const validateVerifyEmailBody = (
 };
 
 export const validateResendVerificationBody = (
-  req: Request<{}, {}, typeof resendVerificationSchema>,
+  req: Request<{}, {}, ResendVerificationInput>,
   res: Response<ErrorResponse>,
   next: NextFunction
 ): void => {
   validateSchema(resendVerificationSchema, req, res, next);
 };
-
