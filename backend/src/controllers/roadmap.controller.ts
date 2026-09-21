@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { RoadmapService } from '../services/roadmap.service';
+import { ApiResponse, CreateRoadmapInput } from '../types';
+import { Roadmap } from '@prisma/client';
 
 export class RoadmapController {
   constructor(private roadmapService: RoadmapService = new RoadmapService()) {}
@@ -8,10 +10,13 @@ export class RoadmapController {
    * POST /api/v1/roadmaps
    * Create a new roadmap
    */
-  createRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  createRoadmap = async (
+    req: Request<{}, ApiResponse<Roadmap>, CreateRoadmapInput>,
+    res: Response<ApiResponse<Roadmap>>,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const userId = req.user?.userId;
-      // TODO: Write controller logic here (extract body, call service)
       const roadmap = await this.roadmapService.createRoadmap({
         ...req.body,
         userId: userId!,
@@ -26,10 +31,13 @@ export class RoadmapController {
    * GET /api/v1/roadmaps
    * List all roadmaps for the logged-in user
    */
-  getUserRoadmaps = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getUserRoadmaps = async (
+    req: Request<{}, ApiResponse<Roadmap[]>, never>,
+    res: Response<ApiResponse<Roadmap[]>>,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const userId = req.user?.userId;
-      // TODO: Write controller logic here (call service)
       const roadmaps = await this.roadmapService.getUserRoadmaps(userId!);
       res.status(200).json({ success: true, data: roadmaps });
     } catch (err) {
@@ -41,11 +49,14 @@ export class RoadmapController {
    * GET /api/v1/roadmaps/:id
    * Get roadmap details with problems
    */
-  getRoadmapById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getRoadmapById = async (
+    req: Request<{ id: string }, ApiResponse<Roadmap | null>, never>,
+    res: Response<ApiResponse<Roadmap | null>>,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      const id = req.params.id as string;
+      const id = req.params.id;
       const userId = req.user?.userId;
-      // TODO: Write controller logic here (call service)
       const roadmap = await this.roadmapService.getRoadmapById(id, userId!);
       res.status(200).json({ success: true, data: roadmap });
     } catch (err) {
@@ -57,16 +68,18 @@ export class RoadmapController {
    * DELETE /api/v1/roadmaps/:id
    * Delete a roadmap
    */
-  deleteRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  deleteRoadmap = async (
+    req: Request<{ id: string }, ApiResponse<Roadmap>, never>,
+    res: Response<ApiResponse<Roadmap>>,
+    next: NextFunction
+  ): Promise<void> => {
     try {
-      const id = req.params.id as string;
+      const id = req.params.id;
       const userId = req.user?.userId;
-      // TODO: Write controller logic here (call service)
       const deleted = await this.roadmapService.deleteRoadmap(id, userId!);
       res.status(200).json({ success: true, data: deleted });
     } catch (err) {
       next(err);
     }
   };
-
 }

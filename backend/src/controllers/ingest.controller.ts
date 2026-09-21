@@ -1,22 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import { extractTextFromUrl } from '../services/ingestion/dispatcher.service';
 import { normalizePdf } from '../services/extractors/pdf.extractor';
 import { processDocumentPipeline } from '../services/ingestion/pipeline.service';
 import { AppError } from '../errors/appError';
 import { RoadmapService } from '../services/roadmap.service';
-import { ProblemService } from '../services/problems.service';
-import { ApiResponse, IngestUrlInput } from '../types/index';
+import { ApiResponse, IngestUrlInput, PipelineResult } from '../types/index';
 import { Roadmap, RoadmapStatus } from '@prisma/client';
 import { logger } from '../utils/logger';
 import { queueRoadmapIngestion } from '../queues/ingestion.queue';
 
-let log = logger.child({ service: 'IngestController' });
-
+const log = logger.child({ service: 'IngestController' });
 
 const roadmapService = new RoadmapService();
-const problemService = new ProblemService();
 
-// [PHASE 1 FIX]: Helper to safely detect standardized source types
+// Helper to safely detect standardized source types
 function detectSourceType(url: string): string {
   try {
     const parsed = new URL(url);
@@ -31,7 +27,7 @@ function detectSourceType(url: string): string {
 }
 
 export async function ingestUrl(
-  req: Request<{}, {}, IngestUrlInput>,
+  req: Request<{}, ApiResponse<Roadmap>, IngestUrlInput>,
   res: Response<ApiResponse<Roadmap>>,
   next: NextFunction
 ): Promise<void> {
@@ -41,21 +37,19 @@ export async function ingestUrl(
     const { url, title } = req.body;
     const userId = req.user!.userId;
 
-    // 1. Clone-on-Ingest check (Phase 2)
+    // 1. Clone-on-Ingest check
     const roadmapexists = await roadmapService.roadmapExists(url);
     if (roadmapexists && roadmapexists.userId === userId) {
       res.status(200).json({ success: true, message: 'roadmap already exists', data: roadmapexists });
       return;
     }
     if (roadmapexists) {
-      // [PHASE 2 FIX]: Pass custom title if provided, and return cloned roadmap ID
       const newRoadmap = await roadmapService.cloneRoadmap(roadmapexists.id, userId, title);
       res.status(201).json({ success: true, message: 'roadmap created successfully', data: newRoadmap });
       return;
     }
 
-    // [PHASE 1 FIX]: Construct clean RoadmapInput matching Prisma contract
-    // (passes userId from authenticated user, detected sourceType, sourceUrl, and initial PROCESSING status)
+    // Construct clean RoadmapInput matching Prisma contract
     const detectedSourceType = detectSourceType(url);
     createdRoadmap = await roadmapService.createRoadmap({
       userId,
@@ -83,8 +77,8 @@ export async function ingestUrl(
 }
 
 export async function ingestFile(
-  req: Request,
-  res: Response,
+  req: Request<{}, PipelineResult, never>,
+  res: Response<PipelineResult>,
   next: NextFunction
 ): Promise<void> {
   try {
