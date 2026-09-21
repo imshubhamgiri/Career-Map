@@ -23,21 +23,23 @@ backend/src/
 ├── app.ts                 # Express application configuration & middleware pipeline
 ├── server.ts              # Server startup & graceful shutdown
 ├── config/                # Environment, database, and Redis configuration (env.ts, db.ts, redis.ts)
-├── controllers/           # HTTP request handlers (user.controller.ts, ingest.controller.ts)
+├── controllers/           # HTTP request handlers (auth.controller.ts, roadmap.controller.ts, ingest.controller.ts)
 ├── errors/                # AppError class and centralized errorHandler middleware
 ├── middleware/            # Auth guard, Multer upload, Zod body/query validation
 ├── queues/                # BullMQ queue producers (email.queue.ts, ingestion.queue.ts)
 ├── repositories/          # Data access layer (user.repository.ts, roadmap.repository.ts)
-├── routes/                # Central route tree (/api/v1/auth, /api/v1/ingest)
+├── routes/                # Central route tree (/api/v1/auth, /api/v1/roadmaps, /api/v1/ingest)
+│   ├── index.ts           # Central router mounting /v1
+│   └── v1/                # Versioned route files (auth.routes.ts, roadmap.routes.ts, ingest.routes.ts)
 ├── schemas/               # Zod validation schemas for requests and LLM outputs
 ├── services/              # Core business services
 │   ├── email/             # Transactional email service (Resend / Dev logger)
 │   ├── extractors/        # Source extractors (PDF, Google Sheets, Google Docs, Web)
 │   ├── ingestion/         # Pipeline orchestration, chunking, LLM parsing
 │   ├── otp/               # Ephemeral Redis OTP storage & atomic rate limiting
+│   ├── auth.service.ts    # Authentication & session lifecycle service
 │   ├── problems.service.ts
-│   ├── roadmap.service.ts
-│   └── user.service.ts
+│   └── roadmap.service.ts
 ├── tests/                 # Vitest automated test suites (auth.test.ts, ingest.test.ts, phase5.test.ts)
 ├── types/                 # Shared TypeScript interfaces & types
 ├── utils/                 # Utilities (crypto.ts, tokens.ts, logger.ts, canonicalSlug.ts)
@@ -50,14 +52,14 @@ backend/src/
 Controllers are responsible only for:
 1. Extracting parameters from `req.body`, `req.query`, or `req.file`.
 2. Calling the appropriate service function or enqueueing a background job.
-3. Returning the response with standard HTTP status codes (< 20ms response time).
+3. Returning strictly typed HTTP responses with standard status codes (< 20ms response time).
 4. Catching unexpected errors and delegating to `next(err)`.
 
 ### 2. Service Separation
 - Ingestion extraction logic is isolated in `src/services/extractors/`.
 - Pipeline orchestration and batching logic reside in `src/services/ingestion/pipeline.service.ts`.
 - LLM interaction and prompt structuring are encapsulated in `src/services/ingestion/llmParser.service.ts`.
-- Identity and authentication orchestration reside in `src/services/user.service.ts`.
+- Identity and authentication orchestration reside in `src/services/auth.service.ts`.
 - Ephemeral OTP lifecycle and rate-limiting reside in `src/services/otp/redisOtp.service.ts`.
 - Transactional email delivery resides in `src/services/email/email.service.ts`.
 
