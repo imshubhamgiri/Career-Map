@@ -122,7 +122,11 @@ export class AuthController {
       const rawRefreshToken = req.signedCookies?.['refresh_token'];
       if (!rawRefreshToken) {
         clearTokenCookies(res);
-        res.status(401).json({ success: false, message: 'Refresh token missing' });
+        res.status(401).json({
+          success: false,
+          message: 'Refresh token missing',
+          error: 'Refresh token missing',
+        });
         return;
       }
       const { accessToken, refreshToken } = await this.authService.rotateRefreshToken(
@@ -149,7 +153,11 @@ export class AuthController {
   ): Promise<void> => {
     try {
       if (!req.user?.userId) {
-        res.status(401).json({ success: false, message: 'Unauthorized' });
+        res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+          error: 'Unauthorized',
+        });
         return;
       }
       const user = await this.authService.getMe(req.user.userId);

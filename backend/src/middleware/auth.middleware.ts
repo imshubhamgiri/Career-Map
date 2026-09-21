@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AccessTokenPayload, ACCESS_TOKEN_SECRET } from '../utils/tokens';
+import { ErrorResponse } from '../types';
 
 declare global {
   namespace Express {
@@ -18,14 +19,16 @@ function extractToken(req: Request): string | undefined {
   return req.cookies?.['access_token'];
 }
 
-export function authenticate(req: Request, res: Response, next: NextFunction) {
+export function authenticate(req: Request, res: Response<ErrorResponse>, next: NextFunction): void {
   const token = extractToken(req);
 
   if (!token) {
-    return res.status(401).json({
-       success: false,
-       error: 'Access token missing'
-       });
+    res.status(401).json({
+      success: false,
+      message: 'Access token missing',
+      error: 'Access token missing',
+    });
+    return;
   }
 
   try {
@@ -33,11 +36,16 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Access token expired or malformed' });
+    res.status(401).json({
+      success: false,
+      message: 'Access token expired or malformed',
+      error: 'Access token expired or malformed',
+    });
+    return;
   }
 }
 
-export const attachAuthContext = (req: Request, res: Response, next: NextFunction) => {
+export const attachAuthContext = (req: Request, res: Response, next: NextFunction): void => {
   const token = extractToken(req);
   if (token) {
     try {
@@ -47,4 +55,3 @@ export const attachAuthContext = (req: Request, res: Response, next: NextFunctio
   }
   next();
 };
-

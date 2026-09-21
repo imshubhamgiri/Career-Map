@@ -93,7 +93,10 @@ export async function ingestFile(
     const result = await processDocumentPipeline(rawLines);
 
     if (!result.success) {
-      res.status(422).json(result);
+      res.status(422).json({
+        ...result,
+        error: result.message,
+      });
       return;
     }
 

@@ -74,6 +74,8 @@ describe('Integration Tests: Ingest Endpoints via Supertest', () => {
       .send({ url: 'https://docs.google.com/spreadsheets/d/test/edit' });
 
     expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Access token missing');
     expect(res.body.error).toMatch(/token/i);
   });
 
@@ -86,6 +88,18 @@ describe('Integration Tests: Ingest Endpoints via Supertest', () => {
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Validation failed');
+    expect(Array.isArray(res.body.error)).toBe(true);
+  });
+
+  it('POST /api/v1/ingest/file - rejects missing file with consistent AppError format via errorHandler', async () => {
+    const res = await request(app)
+      .post('/api/v1/ingest/file')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('File is required');
+    expect(res.body.error).toBe('File is required');
   });
 });
 

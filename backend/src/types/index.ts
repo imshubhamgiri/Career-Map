@@ -29,6 +29,7 @@ export interface PipelineSuccessResult {
 export interface PipelineFailureResult {
   success: false;
   message: string;
+  error?: string;
   data: never[];
 }
 
@@ -55,10 +56,15 @@ export interface IUserInput {
   providerId?: string;
 }
 
+export interface FieldError {
+  field: string;
+  message: string;
+}
+
 export interface ErrorResponse {
   success: false;
-  message?: string;
-  error: string | { field: string; message: string }[];
+  message: string;
+  error: string | FieldError[];
   details?: unknown;
   stack?: string;
 }
@@ -79,5 +85,7 @@ export interface ApiResponse<T = unknown> {
   user?: UserResponse;
   accessToken?: string;
   problems?: ExtractedQuestion[];
-  error?: string | { field: string; message: string }[];
+  error?: string | FieldError[];
+  details?: unknown;
+  stack?: string;
 }
