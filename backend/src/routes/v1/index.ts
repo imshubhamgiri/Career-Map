@@ -1,12 +1,11 @@
 import { Router } from 'express';
-import ingestRoutes from '../ingest.routes';
-import userRoutes from '../user.routes';
-import roadmapRoutes from '../roadmap.routes';
+import authRoutes from './auth.routes';
+import ingestRoutes from './ingest.routes';
+import roadmapRoutes from './roadmap.routes';
 
 const router = Router();
 
-router.use('/auth', userRoutes);
-router.use('/users', userRoutes);
+router.use('/auth', authRoutes);
 router.use('/ingest', ingestRoutes);
 router.use('/roadmaps', roadmapRoutes);
 

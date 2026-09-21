@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { RoadmapController } from '../controllers/roadmap.controller';
-import { authenticate } from '../middleware/auth.middleware';
-import { validateBody } from '../middleware/validate.middleware';
-import { CreateRoadmapSchema } from '../schemas/roadmap.schema';
-import { RoadmapService } from '../services/roadmap.service';
+import { RoadmapController } from '../../controllers/roadmap.controller';
+import { authenticate } from '../../middleware/auth.middleware';
+import { validateBody } from '../../middleware/validate.middleware';
+import { CreateRoadmapSchema } from '../../schemas/roadmap.schema';
+import { RoadmapService } from '../../services/roadmap.service';
 
 const router = Router();
 const roadmapService = new RoadmapService();
