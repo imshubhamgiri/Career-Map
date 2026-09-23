@@ -3,6 +3,7 @@ import { INGESTION_QUEUE_NAME, ProcessRoadmapJobData } from '../queues/ingestion
 import { redisConnectionOptions } from '../config/redis';
 import { RoadmapService } from '../services/roadmap.service';
 import { logger } from '../utils/logger';
+import ms from 'ms';
 
 const log = logger.child({ service: 'IngestionWorker' });
 
@@ -17,6 +18,8 @@ export function createIngestionWorker(roadmapService: RoadmapService = new Roadm
     {
       connection: redisConnectionOptions,
       concurrency: 2, // Concurrency limit for heavy LLM / network scraping
+      lockDuration: ms('10m'),
+      maxStalledCount:1,
     }
   );
 
@@ -34,6 +37,7 @@ export function createIngestionWorker(roadmapService: RoadmapService = new Roadm
       },
       'Roadmap ingestion job failed in worker'
     );
+   // Ensure roadmap status is updated on failure
   });
 
   worker.on('error', (err) => {
