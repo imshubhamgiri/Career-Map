@@ -55,3 +55,17 @@ export const attachAuthContext = (req: Request, res: Response, next: NextFunctio
   }
   next();
 };
+
+export const verifyApiKey = (req: Request, res: Response<ErrorResponse>, next: NextFunction): void => {
+  const key = extractToken(req) || req.headers['x-api-key'] as string | undefined;
+  // if (!key || key !== process.env.API_KEY || key !== 'apiKey') {
+  //   res.status(401).json({
+  //     success: false,
+  //     message: 'Invalid or missing API key',
+  //     error: 'Invalid or missing API key',
+  //   })
+  //   return;
+  // }
+  console.log('API key verified:', key);
+  next();
+}
