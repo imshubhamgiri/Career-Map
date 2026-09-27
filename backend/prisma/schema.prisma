@@ -7,23 +7,60 @@ generator client {
 }
 
 model User {
-  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email        String          @unique @db.VarChar(255)
-  name         String?         @db.VarChar(255)
-  passwordHash String?         @map("password_hash") @db.VarChar(255)
-  isEmailVerified Boolean          @default(false) @map("is_email_verified")
-  emailVerifiedAt DateTime?        @map("email_verified_at") @db.Timestamp(6)
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String          @unique @db.VarChar(255)
+  name            String?         @db.VarChar(255)
+  passwordHash    String?         @map("password_hash") @db.VarChar(255)
+  isEmailVerified Boolean         @default(false) @map("is_email_verified")
+  emailVerifiedAt DateTime?       @map("email_verified_at") @db.Timestamp(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  roadmaps          Roadmap[]
-  progressEvents    ProgressEvent[]
-  sessions          Session[]
-
-  @@map("users")
+  apiKeys         ApiKey[]
+  githubConfig    GithubConfig?
+  roadmaps        Roadmap[]
+  progressEvents  ProgressEvent[]
+  submissions     Submission[]
+  sessions        Session[]
 
   @@index([email])
   @@index([createdAt])
+  @@map("users")
+}
+
+model ApiKey {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  name       String    @default("cos-leet Extension") @db.VarChar(100)
+  keyHash    String    @unique @map("key_hash") @db.VarChar(64)
+  keyPrefix  String    @map("key_prefix") @db.VarChar(16)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamp(6)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamp(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+model GithubConfig {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String    @unique @map("user_id") @db.Uuid
+  githubUsername       String    @map("github_username") @db.VarChar(100)
+  githubRepo           String    @map("github_repo") @db.VarChar(255)
+  githubBranch         String    @default("main") @map("github_branch") @db.VarChar(100)
+  accessTokenEncrypted String    @map("access_token_encrypted") @db.Text
+  isConfigured         Boolean   @default(true) @map("is_configured")
+  lastSyncedAt         DateTime? @map("last_synced_at") @db.Timestamp(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("github_configs")
 }
 
 enum RoadmapStatus {
@@ -34,15 +71,15 @@ enum RoadmapStatus {
 }
 
 model Roadmap {
-  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId       String          @map("user_id") @db.Uuid
-  title        String          @db.VarChar(255)
-  sourceType   String          @map("source_type") @db.VarChar(50)
-  sourceUrl    String?         @map("source_url") @db.Text
-  status       RoadmapStatus   @default(COMPLETED)
-  errorMessage String?         @map("error_message") @db.Text
-  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt    DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  title        String        @db.VarChar(255)
+  sourceType   String        @map("source_type") @db.VarChar(50)
+  sourceUrl    String?       @map("source_url") @db.Text
+  status       RoadmapStatus @default(COMPLETED)
+  errorMessage String?       @map("error_message") @db.Text
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   roadmapProblems RoadmapProblem[]
@@ -73,6 +110,7 @@ model Problem {
 
   roadmapProblems   RoadmapProblem[]
   progressEvents    ProgressEvent[]
+  submissions       Submission[]
 
   @@index([canonicalSlug])
   @@map("problems")
@@ -100,37 +138,81 @@ model RoadmapProblem {
 }
 
 enum ProgressStatus {
-  SOLVED
+  NOT_STARTED
   ATTEMPTED
+  SOLVED
   REVISE
 }
 
-enum GithubSyncStatus {
-  NOT_SYNCED
+enum LlmStatus {
   PENDING
-  SYNCED
+  PROCESSING
+  COMPLETED
   FAILED
 }
 
+enum GithubSyncStatus {
+  PENDING
+  PROCESSING
+  SYNCED
+  FAILED
+  SKIPPED
+}
+
 model ProgressEvent {
-  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String           @map("user_id") @db.Uuid
-  problemId        String           @map("problem_id") @db.Uuid
-  status           ProgressStatus
-  notes            String?          @db.Text
-  githubSyncStatus GithubSyncStatus @default(NOT_SYNCED) @map("github_sync_status")
-  githubRepo       String?          @map("github_repo") @db.VarChar(255)
-  githubFilePath   String?          @map("github_file_path") @db.VarChar(255)
-  githubSyncedAt   DateTime?        @map("github_synced_at") @db.Timestamp(6)
-  completedAt      DateTime         @default(now()) @map("completed_at") @db.Timestamp(6)
-  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  problemId String         @map("problem_id") @db.Uuid
+  status    ProgressStatus @default(NOT_STARTED)
+  aiNotes   String?        @map("ai_notes") @db.Text
+  solvedAt  DateTime?      @map("solved_at") @db.Timestamp(6)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem    Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  submission Submission?
 
-  @@index([userId, problemId])
-  @@index([githubSyncStatus])
+  @@unique([userId, problemId])
+  @@index([userId])
+  @@index([problemId])
   @@map("progress_events")
+}
+
+model Submission {
+  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId               String           @map("user_id") @db.Uuid
+  problemId            String           @map("problem_id") @db.Uuid
+  progressEventId      String           @unique @map("progress_event_id") @db.Uuid
+  code                 String           @db.Text
+  codeHash             String           @map("code_hash") @db.VarChar(64)
+  language             String           @db.VarChar(50)
+  runtime              String?          @db.VarChar(50)
+  memory               String?          @db.VarChar(50)
+  externalSubmissionId String?          @map("external_submission_id") @db.VarChar(100)
+  llmStatus            LlmStatus        @default(PENDING) @map("llm_status")
+  annotatedCode        String?          @map("annotated_code") @db.Text
+  timeComplexity       String?          @map("time_complexity") @db.VarChar(100)
+  spaceComplexity      String?          @map("space_complexity") @db.VarChar(100)
+  llmProcessedAt       DateTime?        @map("llm_processed_at") @db.Timestamp(6)
+  githubSyncStatus     GithubSyncStatus @default(PENDING) @map("github_sync_status")
+  githubRepo           String?          @map("github_repo") @db.VarChar(255)
+  githubFilePath       String?          @map("github_file_path") @db.VarChar(500)
+  githubFileSha        String?          @map("github_file_sha") @db.VarChar(100)
+  githubCommitSha      String?          @map("github_commit_sha") @db.VarChar(100)
+  githubSyncedAt       DateTime?        @map("github_synced_at") @db.Timestamp(6)
+  syncError            String?          @map("sync_error") @db.Text
+  createdAt            DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt            DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem       Problem       @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  progressEvent ProgressEvent @relation(fields: [progressEventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+  @@index([userId, githubSyncStatus])
+  @@index([problemId])
+  @@map("submissions")
 }
 
 model Session {

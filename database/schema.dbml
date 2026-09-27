@@ -13,34 +13,82 @@ Enum Difficulty {
 }
 
 Enum ProgressStatus {
-  SOLVED
+  NOT_STARTED
   ATTEMPTED
+  SOLVED
   REVISE
 }
 
-Enum GithubSyncStatus {
-  NOT_SYNCED
+Enum LlmStatus {
   PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+Enum GithubSyncStatus {
+  PENDING
+  PROCESSING
   SYNCED
   FAILED
+  SKIPPED
 }
 
 Table users {
   id uuid [pk, default: `gen_random_uuid()`]
-  email varchar [unique, not null]
-  name varchar
-  password_hash varchar [note: 'Null for OAuth users, hashed string for email/password auth']
+  email varchar(255) [unique, not null]
+  name varchar(255)
+  password_hash varchar(255) [note: 'Null for OAuth users, hashed string for email/password auth']
   is_email_verified boolean [default: false, not null]
   email_verified_at timestamp
   created_at timestamp [default: `now()`, not null]
   updated_at timestamp [default: `now()`, not null]
+
+  indexes {
+    email
+    created_at
+  }
+}
+
+Table api_keys {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  name varchar(100) [default: 'cos-leet Extension', not null]
+  key_hash varchar(64) [unique, not null, note: 'SHA-256 hash of raw key']
+  key_prefix varchar(16) [not null, note: 'Display prefix e.g. cos_live_a1b2...']
+  last_used_at timestamp
+  expires_at timestamp
+  revoked_at timestamp
+  created_at timestamp [default: `now()`, not null]
+
+  indexes {
+    user_id
+    key_hash
+  }
+}
+
+Table github_configs {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [unique, not null, note: '1:1 with users']
+  github_username varchar(100) [not null]
+  github_repo varchar(255) [not null]
+  github_branch varchar(100) [default: 'main', not null]
+  access_token_encrypted text [not null, note: 'AES-256-GCM encrypted GitHub PAT']
+  is_configured boolean [default: true, not null]
+  last_synced_at timestamp
+  created_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`, not null]
+
+  indexes {
+    user_id [unique]
+  }
 }
 
 Table roadmaps {
   id uuid [pk, default: `gen_random_uuid()`]
   user_id uuid [not null]
-  title varchar [not null]
-  source_type varchar [not null, note: 'pdf, drive_url, or manual']
+  title varchar(255) [not null]
+  source_type varchar(50) [not null, note: 'pdf, drive_url, or manual']
   source_url text
   status RoadmapStatus [not null, default: 'COMPLETED']
   error_message text [note: 'Error details if status is FAILED']
@@ -56,19 +104,16 @@ Table roadmaps {
 
 Table problems {
   id uuid [pk, default: `gen_random_uuid()`]
-  roadmap_id uuid [not null]
-  title varchar [not null]
-  topic varchar [not null]
+  canonical_slug varchar(255) [unique, not null, note: 'Unique slug for cross-referencing e.g. two-sum']
+  title varchar(255) [not null]
   difficulty Difficulty [not null, default: 'UNKNOWN']
-  platform varchar [note: 'Canonical platform e.g. LeetCode, GeeksforGeeks, CodeStudio']
+  platform varchar(100) [note: 'Canonical platform e.g. LeetCode, GeeksforGeeks, CodeStudio']
   external_url text
-  canonical_slug varchar [note: 'Unique slug for cross-referencing e.g. two-sum']
-  platform_problem_id varchar
+  platform_problem_id varchar(100)
   created_at timestamp [default: `now()`, not null]
   updated_at timestamp [default: `now()`, not null]
 
   indexes {
-    roadmap_id
     canonical_slug
   }
 }
@@ -77,10 +122,10 @@ Table roadmap_problems {
   id uuid [pk, default: `gen_random_uuid()`]
   roadmap_id uuid [not null]
   problem_id uuid [not null]
-  topic varchar [not null, note: 'Arrays, DP, Graphs as categorized in this specific roadmap']
-  original_title varchar [not null]
+  topic varchar(255) [not null, note: 'Arrays, DP, Graphs as categorized in this specific roadmap']
+  original_title varchar(255) [not null]
   original_url text
-  original_category varchar
+  original_category varchar(255)
   original_difficulty Difficulty [not null, default: 'UNKNOWN']
   order_index int [default: 0, not null]
   created_at timestamp [default: `now()`, not null]
@@ -96,29 +141,58 @@ Table progress_events {
   id uuid [pk, default: `gen_random_uuid()`]
   user_id uuid [not null]
   problem_id uuid [not null]
-  status ProgressStatus [not null]
-  notes text
-  github_sync_status GithubSyncStatus [default: 'NOT_SYNCED', not null]
-  github_repo varchar
-  github_file_path varchar
-  github_synced_at timestamp
-  completed_at timestamp [default: `now()`, not null]
+  status ProgressStatus [default: 'NOT_STARTED', not null]
+  ai_notes text [note: 'Extended Markdown revision notes for Career OS platform UI']
+  solved_at timestamp
+  created_at timestamp [default: `now()`, not null]
   updated_at timestamp [default: `now()`, not null]
 
   indexes {
-    (user_id, problem_id)
+    (user_id, problem_id) [unique]
     user_id
     problem_id
-    github_sync_status
+  }
+}
+
+Table submissions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null]
+  problem_id uuid [not null]
+  progress_event_id uuid [unique, not null, note: '1:1 with progress_events']
+  code text [not null]
+  code_hash varchar(64) [not null, note: 'SHA-256 of normalized language + code']
+  language varchar(50) [not null]
+  runtime varchar(50)
+  memory varchar(50)
+  external_submission_id varchar(100)
+  llm_status LlmStatus [default: 'PENDING', not null]
+  annotated_code text [note: 'Code with inline step-by-step comments pushed to GitHub']
+  time_complexity varchar(100)
+  space_complexity varchar(100)
+  llm_processed_at timestamp
+  github_sync_status GithubSyncStatus [default: 'PENDING', not null]
+  github_repo varchar(255)
+  github_file_path varchar(500)
+  github_file_sha varchar(100)
+  github_commit_sha varchar(100)
+  github_synced_at timestamp
+  sync_error text
+  created_at timestamp [default: `now()`, not null]
+  updated_at timestamp [default: `now()`, not null]
+
+  indexes {
+    (user_id, problem_id) [unique]
+    (user_id, github_sync_status)
+    problem_id
   }
 }
 
 Table sessions {
   id uuid [pk, default: `gen_random_uuid()`]
   user_id uuid [not null]
-  token_family varchar [not null]
-  hashed_token varchar [unique, not null]
-  ip_address varchar
+  token_family varchar(255) [not null]
+  hashed_token varchar(255) [unique, not null]
+  ip_address varchar(255)
   user_agent text
   revoked boolean [default: false, not null]
   expires_at timestamp [not null]
@@ -133,12 +207,14 @@ Table sessions {
 }
 
 // Foreign Key Relationships
+Ref: api_keys.user_id > users.id [delete: cascade]
+Ref: github_configs.user_id - users.id [delete: cascade]
 Ref: roadmaps.user_id > users.id [delete: cascade]
-Ref: problems.roadmap_id > roadmaps.id [delete: cascade]
 Ref: roadmap_problems.roadmap_id > roadmaps.id [delete: cascade]
 Ref: roadmap_problems.problem_id > problems.id [delete: cascade]
 Ref: progress_events.user_id > users.id [delete: cascade]
 Ref: progress_events.problem_id > problems.id [delete: cascade]
+Ref: submissions.user_id > users.id [delete: cascade]
+Ref: submissions.problem_id > problems.id [delete: cascade]
+Ref: submissions.progress_event_id - progress_events.id [delete: cascade]
 Ref: sessions.user_id > users.id [delete: cascade]
-
-
