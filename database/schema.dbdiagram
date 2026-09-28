@@ -10,14 +10,14 @@
       {
         "name": "users",
         "schemaName": "public",
-        "x": -142.40116331875493,
-        "y": 264.22125362354666
+        "x": -255.92658718425787,
+        "y": 355.67228951520184
       },
       {
         "name": "roadmaps",
         "schemaName": "public",
-        "x": -156.3233075290134,
-        "y": -120.44713794191817
+        "x": -274.5789573889123,
+        "y": -166.17265588774575
       },
       {
         "name": "problems",
@@ -30,6 +30,36 @@
         "schemaName": "public",
         "x": 378.59630945531796,
         "y": -155.096940738958
+      },
+      {
+        "name": "api_keys",
+        "schemaName": "public",
+        "x": 1099.856640625,
+        "y": 12
+      },
+      {
+        "name": "github_configs",
+        "schemaName": "public",
+        "x": 43.534839962639694,
+        "y": -2.190677983187868
+      },
+      {
+        "name": "roadmap_problems",
+        "schemaName": "public",
+        "x": 1772.3654296875,
+        "y": 12
+      },
+      {
+        "name": "submissions",
+        "schemaName": "public",
+        "x": 1099.856640625,
+        "y": 1111
+      },
+      {
+        "name": "sessions",
+        "schemaName": "public",
+        "x": 1099.856640625,
+        "y": 745
       }
     ],
     "tableGroupCollapseStates": [],
