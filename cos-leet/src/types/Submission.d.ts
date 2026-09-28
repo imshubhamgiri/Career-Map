@@ -1,6 +1,9 @@
 export interface SubmissionPayload {
+  submissionId: number;
+  problemId: string;
   titleSlug: string;
   questionTitle: string;
+  difficulty: string;
   code: string;
   language: string;
   status: string;

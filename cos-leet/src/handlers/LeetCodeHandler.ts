@@ -50,6 +50,9 @@ export class LeetCodeHandler {
 
       const payload: SubmissionPayload = {
         titleSlug,
+        difficulty: details.question?.difficulty || 'Unknown',
+        problemId: details.question?.questionId || 'Unknown',
+        submissionId: submissionId,
         questionTitle,
         code,
         language,
