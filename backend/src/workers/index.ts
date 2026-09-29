@@ -1,5 +1,7 @@
 import { createEmailWorker } from './email.worker';
 import { createIngestionWorker } from './ingestion.worker';
+import { createSubmissionWorker } from './submission.worker';
+import { createGithubSyncWorker } from './githubsync.worker';
 import { logger } from '../utils/logger';
 
 const log = logger.child({ service: 'BackgroundWorkerPool' });
@@ -13,6 +15,12 @@ async function startWorkers() {
   const ingestionWorker = createIngestionWorker();
   log.info('✓ Ingestion Worker listening on queue: ingestion-queue');
 
+  const submissionWorker = createSubmissionWorker();
+  log.info('✓ Submission Worker listening on queue: submission-queue');
+
+  const githubSyncWorker = createGithubSyncWorker();
+  log.info('✓ GitHub Sync Worker listening on queue: github-sync-queue');
+
   // Graceful shutdown handling
   const shutdown = async (signal: string) => {
     log.info({ signal }, 'Received termination signal, closing workers gracefully...');
@@ -20,6 +28,8 @@ async function startWorkers() {
       await Promise.all([
         emailWorker.close(),
         ingestionWorker.close(),
+        submissionWorker.close(),
+        githubSyncWorker.close(),
       ]);
       log.info('All background workers closed cleanly');
       process.exit(0);
