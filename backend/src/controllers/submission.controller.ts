@@ -1,41 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 
 
-const languagesToExtensions: Record<string, string> = {
-    Python: '.py',
-    Python3: '.py',
-    'C++': '.cpp',
-    C: '.c',
-    Java: '.java',
-    'C#': '.cs',
-    JavaScript: '.js',
-    Javascript: '.js',
-    Ruby: '.rb',
-    Swift: '.swift',
-    Go: '.go',
-    Kotlin: '.kt',
-    Scala: '.scala',
-    Rust: '.rs',
-    PHP: '.php',
-    TypeScript: '.ts',
-    MySQL: '.sql',
-    'MS SQL Server': '.sql',
-    Oracle: '.sql',
-    PostgreSQL: '.sql',
-    'C++14': '.cpp',
-    'C++17': '.cpp',
-    'C++11': '.cpp',
-    'C++98': '.cpp',
-    'C++03': '.cpp',
-    'C++20': '.cpp',
-    'C++1z': '.cpp',
-    'C++1y': '.cpp',
-    'C++1x': '.cpp',
-    'C++1a': '.cpp',
-    CPP: '.cpp',
-    Dart: '.dart',
-    Elixir: '.ex',
-  };
+
 
 export class SubmissionController {
     constructor() {}
