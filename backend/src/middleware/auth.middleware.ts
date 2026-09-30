@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AccessTokenPayload, ACCESS_TOKEN_SECRET } from '../utils/tokens';
+import { hashApiKey } from '../utils/crypto';
+import { ApiKeyRepository } from '../repositories/apiKey.repository';
 import { ErrorResponse } from '../types';
+
+const apiKeyRepo = new ApiKeyRepository();
 
 declare global {
   namespace Express {
@@ -56,16 +60,45 @@ export const attachAuthContext = (req: Request, res: Response, next: NextFunctio
   next();
 };
 
-export const verifyApiKey = (req: Request, res: Response<ErrorResponse>, next: NextFunction): void => {
-  const key = extractToken(req) || req.headers['x-api-key'] as string | undefined;
-  // if (!key || key !== process.env.API_KEY || key !== 'apiKey') {
-  //   res.status(401).json({
-  //     success: false,
-  //     message: 'Invalid or missing API key',
-  //     error: 'Invalid or missing API key',
-  //   })
-  //   return;
-  // }
-  console.log('API key verified:', key);
-  next();
-}
+export const verifyApiKey = async (
+  req: Request,
+  res: Response<ErrorResponse>,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const headerKey = req.headers['x-api-key'];
+    const rawKey =
+      (typeof headerKey === 'string' ? headerKey : undefined) || extractToken(req);
+
+    if (!rawKey) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid or missing API key',
+        error: 'Invalid or missing API key',
+      });
+      return;
+    }
+
+    const keyHash = hashApiKey(rawKey);
+    const apiKeyRecord = await apiKeyRepo.findActiveByHash(keyHash);
+
+    if (!apiKeyRecord) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid, expired, or revoked API key',
+        error: 'Invalid, expired, or revoked API key',
+      });
+      return;
+    }
+
+    req.user = { userId: apiKeyRecord.userId } as AccessTokenPayload;
+
+    // Fire-and-forget last_used_at update
+    apiKeyRepo.updateLastUsed(apiKeyRecord.id).catch(() => {});
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
