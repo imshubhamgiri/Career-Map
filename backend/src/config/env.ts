@@ -20,6 +20,7 @@ const envSchema = z.object({
   REDIS_PORT: z.string().default('6379').transform((val) => parseInt(val, 10)),
   REDIS_PASSWORD: z.string().optional(),
   REDIS_URL: z.string().optional(),
+  ENCRYPTION_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
