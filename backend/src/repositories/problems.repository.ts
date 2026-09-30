@@ -85,6 +85,35 @@ export class ProblemsRepository {
   }
 
   /**
+   * Upsert a canonical problem by `canonicalSlug`.
+   * Preserves existing difficulty/URL if the incoming values are missing or UNKNOWN.
+   */
+  async upsertCanonicalProblem(
+    data: CanonicalProblemInput,
+    tx: Prisma.TransactionClient | typeof prisma = prisma
+  ): Promise<Problem> {
+    const difficulty = data.difficulty ?? Difficulty.UNKNOWN;
+    return tx.problem.upsert({
+      where: { canonicalSlug: data.canonicalSlug },
+      create: {
+        canonicalSlug: data.canonicalSlug,
+        title: data.title,
+        difficulty,
+        platform: data.platform ?? 'LeetCode',
+        externalUrl: data.externalUrl ?? null,
+        platformProblemId: data.platformProblemId ?? null,
+      },
+      update: {
+        title: data.title,
+        ...(difficulty !== Difficulty.UNKNOWN && { difficulty }),
+        ...(data.platform && { platform: data.platform }),
+        ...(data.externalUrl && { externalUrl: data.externalUrl }),
+        ...(data.platformProblemId && { platformProblemId: data.platformProblemId }),
+      },
+    });
+  }
+
+  /**
    * Retrieve all problems belonging to a roadmap with canonical problem details.
    */
   async findRoadmapProblems(roadmapId: string): Promise<RoadmapProblem[]> {
