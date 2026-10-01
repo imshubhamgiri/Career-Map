@@ -324,25 +324,25 @@ Authenticated via standard session JWT (`authenticate` middleware). Triggered fr
 - [x] Update `database/schema.dbml` with `LlmStatus`, `GithubSyncStatus`, `api_keys`, `github_configs`, cleaned `problems`, updated `progress_events`, and `submissions`.
 - [x] Update `backend/prisma/schema.prisma` to match `database/schema.dbml`.
 - [x] Update `backend/src/repositories/progress.repository.ts` to use `userId_problemId` composite key and support `aiNotes` and `solvedAt`.
-- [ ] Run `npx prisma migrate dev --name add_submissions_apikeys_github_configs` and `npx prisma generate`.
-- [ ] Create `backend/src/repositories/submission.repository.ts`, `apiKey.repository.ts`, and `githubConfig.repository.ts`.
+- [ ] Run `npx prisma migrate dev --name add_submissions_apikeys_github_configs` (Pending live DB migration; `npx prisma generate` completed).
+- [x] Create `backend/src/repositories/submission.repository.ts`, `apiKey.repository.ts`, and `githubConfig.repository.ts`.
 
 ### Phase 2: Auth Middleware, API Keys & GitHub Settings
-- [ ] Implement AES-256-GCM encryption/decryption helper in `backend/src/utils/crypto.ts` for `github_configs.access_token_encrypted`.
-- [ ] Fix Bug #3: Implement SHA-256 `api_keys` lookup in `verifyApiKey` (`backend/src/middleware/auth.middleware.ts`).
+- [x] Implement AES-256-GCM encryption/decryption helper in `backend/src/utils/crypto.ts` for `github_configs.access_token_encrypted`.
+- [x] Fix Bug #3: Implement SHA-256 `api_keys` lookup in `verifyApiKey` (`backend/src/middleware/auth.middleware.ts`).
 - [ ] Add API Key management endpoints (`POST /api/v1/settings/api-keys`, `GET /api/v1/settings/api-keys`, `DELETE /api/v1/settings/api-keys/:id`).
 - [ ] Add GitHub Config endpoints (`PUT /api/v1/settings/github`, `GET /api/v1/settings/github`, `POST /api/v1/settings/github/verify`).
 
 ### Phase 3: Submission Controller & Worker 1 (`submissionWorker`)
-- [ ] Implement `computeCodeHash(language, code)` utility in `backend/src/utils/codeHash.ts`.
-- [ ] Update `SubmissionController.handleSubmission` (`POST /api/v1/submissions`) with Zod validation, Redis 15s deduplication (`sub:dedupe:${userId}:${slug}:${codeHash}`), and `submissionQueue` enqueueing.
-- [ ] Implement `submissionWorker` (`backend/src/workers/submission.worker.ts`) with canonical `Problem` upsert, the 3-Case Decision Matrix (Case A / Case B / Case C), GitHub Config Gate, and Bug #4 fix (passing `submission.id` UUID).
+- [x] Implement `computeCodeHash(language, code)` utility in `backend/src/utils/codeHash.ts`.
+- [x] Update `SubmissionController.handleSubmission` (`POST /api/v1/submissions`) with Zod validation, Redis 15s deduplication (`sub:dedupe:${userId}:${slug}:${codeHash}`), and `submissionQueue` enqueueing via `SubmissionService`.
+- [x] Implement `SubmissionService.processSubmissionJob` & `submissionWorker` (`backend/src/workers/submission.worker.ts`) with canonical `Problem` upsert, the 3-Case Decision Matrix (Case A / Case B / Case C), GitHub Config Gate, and Bug #4 fix (passing `submission.id` UUID).
 
 ### Phase 4: Worker 2 (`githubSyncWorker`) & Unified Retry Endpoint
-- [ ] Fix Bug #1: Align queue name constant `GITHUB_SYNC_QUEUE_NAME = 'github-sync-queue'` across `githubSync.queue.ts` and `githubsync.worker.ts`.
-- [ ] Implement Stage 1 (Gemini 2.5 Flash structured evaluation + immediate PostgreSQL checkpoint) and Stage 2 (GitHub Contents API push with `409` SHA conflict recovery and `401/403` `UnrecoverableError`) in `backend/src/workers/githubsync.worker.ts`.
-- [ ] Fix Bug #2: Register `submissionWorker` and `githubSyncWorker` in `backend/src/workers/index.ts`.
-- [ ] Implement `POST /api/v1/submissions/:problemId/retry-sync` in `submission.controller.ts` and `submission.routes.ts`.
+- [x] Fix Bug #1: Align queue name constant `GITHUB_SYNC_QUEUE_NAME = 'github-sync-queue'` across `githubSync.queue.ts` and `githubsync.worker.ts`.
+- [x] Implement `GithubSyncService.processGithubSyncJob` & `githubsync.worker.ts` with Stage 1 (Gemini 2.5 Flash structured evaluation + immediate PostgreSQL checkpoint) and Stage 2 (GitHub Contents API push with `409` SHA conflict recovery and `401/403` `UnrecoverableError`).
+- [x] Fix Bug #2: Register `submissionWorker` and `githubSyncWorker` in `backend/src/workers/index.ts`.
+- [x] Implement `POST /api/v1/submissions/:problemId/retry-sync` in `submission.controller.ts`, `submission.service.ts`, and `submission.routes.ts`.
 
 ### Phase 5: `cos-leet` Chrome Extension Updates
 - [ ] Fix Bug #5: Update `cos-leet/src/types/Submission.ts` and `cos-leet/src/handlers/LeetCodeHandler.ts` to preserve `questionId`, `difficulty`, and `submissionId` from the LeetCode GraphQL response.
