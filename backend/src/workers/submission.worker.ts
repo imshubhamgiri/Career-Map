@@ -5,12 +5,16 @@ import {
   SubmissionJobData,
   SubmissionJobName,
 } from '../queues/submission.queue';
-import { queueGithubSync } from '../queues/githubSync.queue';
 import { redisConnectionOptions } from '../config/redis';
+import { SubmissionService } from '../services/submission.service';
 
 const log = logger.child({ service: 'SubmissionWorker' });
 
-export function createSubmissionWorker(): Worker<SubmissionJobData, void, SubmissionJobName> {
+export function createSubmissionWorker(
+  submissionService: SubmissionService = new SubmissionService()
+)
+: Worker<SubmissionJobData, void, SubmissionJobName> 
+{
   const submissionWorker = new Worker<SubmissionJobData, void, SubmissionJobName>(
     SUBMISSION_QUEUE_NAME,
     async (job: Job<SubmissionJobData, void, SubmissionJobName>) => {
@@ -22,21 +26,14 @@ export function createSubmissionWorker(): Worker<SubmissionJobData, void, Submis
           problemId,
           submissionId,
           titleSlug,
+          codeHash,
           attempt: job.attemptsMade + 1,
         },
         `Processing submission job: ${job.id}`
       );
 
-      // Save the submission to the database
-      // Here you would implement the logic to save the submission to the database
-
-      // After saving the submission, queue the job for github sync and llm processing with job data and submission id
-      await queueGithubSync({
-        submissionId: String(submissionId),
-        userId,
-        problemId,
-        codeHash,
-      });
+      // Delegate canonical problem upsert, 3-Case Decision Matrix, and GitHub Config Gate to SubmissionService
+      await submissionService.processSubmissionJob(job.data);
     },
     {
       connection: redisConnectionOptions,
