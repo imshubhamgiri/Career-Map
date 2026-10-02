@@ -72,15 +72,27 @@ export class ApiKeyRepository {
   }
 
   /**
-   * Soft-revoke an API key belonging to a user.
+   * Find an API key by ID belonging to a specific user.
    */
-  revokeApiKey(
+  findUserKeyById(
     id: string,
     userId: string,
     tx: Prisma.TransactionClient | typeof prisma = prisma
+  ): Promise<ApiKey | null> {
+    return tx.apiKey.findFirst({
+      where: { id, userId },
+    });
+  }
+
+  /**
+   * Soft-revoke an API key by ID.
+   */
+  revokeApiKey(
+    id: string,
+    tx: Prisma.TransactionClient | typeof prisma = prisma
   ): Promise<ApiKey> {
     return tx.apiKey.update({
-      where: { id, userId },
+      where: { id },
       data: { revokedAt: new Date() },
     });
   }

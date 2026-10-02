@@ -330,8 +330,8 @@ Authenticated via standard session JWT (`authenticate` middleware). Triggered fr
 ### Phase 2: Auth Middleware, API Keys & GitHub Settings
 - [x] Implement AES-256-GCM encryption/decryption helper in `backend/src/utils/crypto.ts` for `github_configs.access_token_encrypted`.
 - [x] Fix Bug #3: Implement SHA-256 `api_keys` lookup in `verifyApiKey` (`backend/src/middleware/auth.middleware.ts`).
-- [ ] Add API Key management endpoints (`POST /api/v1/settings/api-keys`, `GET /api/v1/settings/api-keys`, `DELETE /api/v1/settings/api-keys/:id`).
-- [ ] Add GitHub Config endpoints (`PUT /api/v1/settings/github`, `GET /api/v1/settings/github`, `POST /api/v1/settings/github/verify`).
+- [x] Add API Key management endpoints (`POST /api/v1/settings/api-keys`, `GET /api/v1/settings/api-keys`, `DELETE /api/v1/settings/api-keys/:id`).
+- [x] Add GitHub Config endpoints (`PUT /api/v1/settings/github`, `GET /api/v1/settings/github`, `POST /api/v1/settings/github/verify`).
 
 ### Phase 3: Submission Controller & Worker 1 (`submissionWorker`)
 - [x] Implement `computeCodeHash(language, code)` utility in `backend/src/utils/codeHash.ts`.
