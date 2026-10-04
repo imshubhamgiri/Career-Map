@@ -1,13 +1,30 @@
 "use client";
 
+import type { SubmitEvent } from "react";
 import Link from "next/link";
 import { Button } from "@core/components/ui/button";
+import { useUserLogin } from "../hooks/userLogin";
+import type { LoginCredentials } from "../types";
 
 export function LoginForm() {
+  const { error, isLoading, login, user } = useUserLogin();
+
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const credentials: LoginCredentials = {
+      email: String(formData.get("email") ?? ""),
+      password: String(formData.get("password") ?? ""),
+    };
+
+    await login(credentials);
+  }
+
   return (
-    <div className="w-full max-w-sm rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-sm dark:border-zinc-800/80 dark:bg-[#18181b] backdrop-blur-sm">
+    <div className="w-full max-w-sm rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-sm dark:border-zinc-800/80 dark:bg-dark-bg backdrop-blur-sm">
       <div className="mb-6 flex flex-col space-y-2">
-        <div className="h-1.5 w-10 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-500" />
+        <div className="h-1.5 w-10 rounded-full bg-linear-to-r from-indigo-500 via-violet-500 to-cyan-500" />
         <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
           Welcome back
         </h1>
@@ -16,7 +33,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <label
             htmlFor="email"
@@ -26,9 +43,11 @@ export function LoginForm() {
           </label>
           <input
             id="email"
+            name="email"
             type="email"
             placeholder="name@example.com"
             autoComplete="email"
+            required
             className="w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-600"
           />
         </div>
@@ -47,17 +66,31 @@ export function LoginForm() {
           </div>
           <input
             id="password"
+            name="password"
             type="password"
             placeholder="••••••••"
             autoComplete="current-password"
+            required
             className="w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-600"
           />
         </div>
 
-        <Button type="button" className="w-full mt-2">
-          Sign in
+        <Button type="submit" className="mt-2 w-full" disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
+
+      {error && (
+        <p role="alert" className="mt-3 text-xs text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+
+      {user && (
+        <p className="mt-3 text-xs text-emerald-600 dark:text-emerald-400">
+          Signed in as {user.name}.
+        </p>
+      )}
 
       <div className="mt-6 text-center text-xs text-zinc-500 dark:text-zinc-400">
         Don&apos;t have an account?{" "}
