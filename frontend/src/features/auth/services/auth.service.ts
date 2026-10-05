@@ -5,6 +5,7 @@ import type {
   LoginResponse,
   RegisterCredentials,
   RegisterResponse,
+  VerificationResponse,
 } from "../types";
 
 export async function loginUser(
@@ -17,6 +18,8 @@ export async function loginUser(
       return {
         success: false,
         message: error.message,
+        status: error.status,
+        code: error.code,
       };
     }
 
@@ -39,6 +42,8 @@ export async function registerUser(credentials: RegisterCredentials): Promise<Re
       return {
         success: false,
         message: error.message,
+        status: error.status,
+        code: error.code,
       };
     }
 
@@ -52,8 +57,15 @@ export async function registerUser(credentials: RegisterCredentials): Promise<Re
   }
 }
 
-export async function verifyEmail(email: string): Promise<void> {
-  await apiClient.post("/auth/verify-email", { email });
+export async function verifyEmail(
+  email: string,
+  code: string,
+): Promise<LoginResponse> {
+  return apiClient.post<LoginResponse>("/auth/verify-email", { email, code });
+}
+
+export async function resendVerification(email: string): Promise<VerificationResponse> {
+  return apiClient.post<VerificationResponse>("/auth/resend-verification", { email });
 }
 
 export async function getCurrentUser(): Promise<AuthUser> {

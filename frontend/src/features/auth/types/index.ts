@@ -21,6 +21,8 @@ export interface RegisterCredentials {
 export interface RegisterResponse {
   success: boolean;
   message?: string;
+  code?: string;
+  status?: number;
   user?: User;
   token?: string;
   accessToken?: string;
@@ -36,7 +38,18 @@ export interface AuthUser {
 export interface LoginResponse {
   success: boolean;
   message?: string;
+  code?: string;
+  status?: number;
   token?: string;
   accessToken?: string;
   user?: AuthUser;
+}
+
+export interface VerificationResponse {
+  success: boolean;
+  message?: string;
+  code?: string;
+  status?: number;
+  user?: AuthUser;
+  accessToken?: string;
 }

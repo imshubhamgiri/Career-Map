@@ -3,12 +3,18 @@ import { env } from "@core/config/env";
 export class ApiError extends Error {
   readonly status: number;
   readonly data?: unknown;
+  readonly code?: string;
 
   constructor(status: number, message: string, data?: unknown) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.data = data;
+    this.code =
+      data && typeof data === "object" && "code" in data &&
+      typeof data.code === "string"
+        ? data.code
+        : undefined;
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
