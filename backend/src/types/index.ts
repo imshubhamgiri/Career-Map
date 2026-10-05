@@ -65,6 +65,7 @@ export interface ErrorResponse {
   success: false;
   message: string;
   error: string | FieldError[];
+  code?: string;
   details?: unknown;
   stack?: string;
 }
@@ -84,6 +85,7 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   user?: UserResponse;
   accessToken?: string;
+  code?: string;
   problems?: ExtractedQuestion[];
   error?: string | FieldError[];
   details?: unknown;

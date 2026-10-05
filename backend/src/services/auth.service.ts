@@ -189,7 +189,10 @@ export class AuthService {
 
         // Require email verification before allowing login
         if (!user.isEmailVerified) {
-            throw new ForbiddenError('Please verify your email before logging in. If you need a new code, please request one via /resend-verification.');
+            throw new ForbiddenError(
+                'Please verify your email before logging in. If you need a new code, please request one via /resend-verification.',
+                'EMAIL_NOT_VERIFIED'
+            );
         }
 
         const accessToken = generateAccessToken({ id: user.id, email: user.email });
@@ -295,4 +298,3 @@ export class AuthService {
         };
     }
 }
-

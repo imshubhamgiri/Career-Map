@@ -49,6 +49,7 @@ export function errorHandler(
       success: false,
       message: error.message,
       error: error.message,
+      ...(error.code && { code: error.code }),
       ...(process.env.NODE_ENV !== 'production' && { stack: error.stack }),
     });
     return;
