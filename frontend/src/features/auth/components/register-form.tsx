@@ -1,33 +1,30 @@
 "use client";
 
-import { useState, type SubmitEvent } from "react";
+import type { SubmitEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@core/components/ui/button";
 import { useAuth } from "../hooks/use-auth";
-import type { LoginCredentials } from "../types";
+import type { RegisterCredentials } from "../types";
 
 
-export function LoginForm() {
-  const [openVerifyEmailModal, setOpenVerifyEmailModal] = useState(false);
-  const { error, isInitializing, isLoading, login, isEmailVerified } = useAuth();
+export function RegisterForm() {
+  const { error, isInitializing, isLoading, register } = useAuth();
   const router = useRouter();
 
   async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-    const credentials: LoginCredentials = {
+    const credentials: RegisterCredentials = {
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
+      name: String(formData.get("name") ?? ""),
     };
-    const didLogin = await login(credentials);
-    if (didLogin && isEmailVerified) {
+    const didRegister = await register(credentials);
+    if (didRegister) {
       router.push("/dashboard");
-    } else if (didLogin && !isEmailVerified) {
-      setOpenVerifyEmailModal(true);
     }
-
   }
 
   return (
