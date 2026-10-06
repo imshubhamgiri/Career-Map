@@ -9,6 +9,7 @@ import {
   oauthRegisterSchema,
 } from '../schemas/api.schema';
 import { CreateRoadmapSchema } from '../schemas/roadmap.schema';
+import { Roadmap } from '@prisma/client';
 
 export type ExtractedQuestion = z.infer<typeof ExtractedQuestionSchema>;
 export type ChunkResult = z.infer<typeof ChunkResultSchema>;
@@ -19,6 +20,12 @@ export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type OAuthRegisterInput = z.infer<typeof oauthRegisterSchema>;
 export type CreateRoadmapInput = z.infer<typeof CreateRoadmapSchema>;
+
+export type RoadmapSummary = Roadmap & {
+  totalProblems: number;
+  solvedProblems: number;
+  progressPercentage: number;
+};
 
 export interface PipelineSuccessResult {
   success: true;
