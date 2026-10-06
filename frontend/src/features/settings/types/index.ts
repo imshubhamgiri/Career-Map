@@ -12,6 +12,7 @@ export interface GithubConfig {
   githubUsername: string;
   githubRepo: string;
   githubBranch: string;
+  githubToken: string;
   isConfigured: boolean;
   lastSyncedAt?: string | null;
 }
