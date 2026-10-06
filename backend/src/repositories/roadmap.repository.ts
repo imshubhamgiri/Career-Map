@@ -29,13 +29,22 @@ export class RoadmapRepository {
     });
   }
 
-  findRoadmapById(id: string): Promise<Roadmap | null> {
+  findRoadmapById(id: string, userId: string) {
     return prisma.roadmap.findUnique({
-      where: { id },
+      where: { id, userId },
       include: {
         roadmapProblems: {
           include: {
-            problem: true,
+            problem: {
+              include: {
+                progressEvents: {
+                  where: { userId },
+                },
+                submissions: {
+                  where: { userId },
+                },
+              },
+            },
           },
           orderBy: {
             orderIndex: 'asc',
@@ -45,9 +54,23 @@ export class RoadmapRepository {
     });
   }
 
-  findRoadmapsByUserId(userId: string): Promise<Roadmap[]> {
+  findRoadmapsByUserId(userId: string) {
     return prisma.roadmap.findMany({
       where: { userId },
+      include: {
+        roadmapProblems: {
+          include: {
+            problem: {
+              include: {
+                progressEvents: {
+                  where: { userId },
+                  select: { status: true },
+                },
+              },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

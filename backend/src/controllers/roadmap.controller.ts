@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { RoadmapService } from '../services/roadmap.service';
-import { ApiResponse, CreateRoadmapInput } from '../types';
+import { ApiResponse, CreateRoadmapInput, RoadmapSummary } from '../types';
 import { Roadmap } from '@prisma/client';
 
 export class RoadmapController {
@@ -32,8 +32,8 @@ export class RoadmapController {
    * List all roadmaps for the logged-in user
    */
   getUserRoadmaps = async (
-    req: Request<{}, ApiResponse<Roadmap[]>, never>,
-    res: Response<ApiResponse<Roadmap[]>>,
+    req: Request<{}, ApiResponse<RoadmapSummary[]>, never>,
+    res: Response<ApiResponse<RoadmapSummary[]>>,
     next: NextFunction
   ): Promise<void> => {
     try {
