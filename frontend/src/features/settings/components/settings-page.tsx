@@ -3,6 +3,8 @@
 import {
   Check,
   Copy,
+  Eye,
+  EyeOff,
   Github,
   KeyRound,
   Plus,
@@ -10,55 +12,115 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
-import type { ApiKey, GithubConfig } from "../types";
+import { useState , useRef } from "react";
+import type { ApiKeyResponse, GithubConfigForm } from "../types";
+import { Button } from "@/core/components/ui/button";
+import {
+  VerifyGithubConfigResult,
+  deleteApiKey,
+  generateApiKey,
+  updateGithubConfig,
+  verifyGithubConfig,
+} from "../services/setting-service";
+import { ApiError } from "@/lib/api-client";
 
-const initialApiKeys: ApiKey[] = [
-  {
-    id: "key_demo_1",
-    name: "Local development",
-    keyPrefix: "cos_live_••••••••••••4f9a",
-    createdAt: "2026-09-18T10:00:00.000Z",
-    lastUsedAt: "2026-10-05T08:30:00.000Z",
-  },
-];
 
-const initialGithubConfig: GithubConfig = {
-  id: "github_demo",
+const initialGithubConfig: GithubConfigForm = {
   githubUsername: "your-username",
   githubRepo: "interview-solutions",
   githubBranch: "main",
-  githubToken: "your-github-token",
-  isConfigured: false,
+  personalAccessToken: "your-github-token",
 };
 
 export function SettingsPage() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
+  const [apiKeys, setApiKeys] = useState<ApiKeyResponse[] | null>(null);
   const [keyName, setKeyName] = useState("");
   const [newKey, setNewKey] = useState<string | null>(null);
-  const [githubConfig, setGithubConfig] = useState<GithubConfig>(initialGithubConfig);
+  const [githubConfig, setGithubConfig] = useState<GithubConfigForm>(initialGithubConfig);
   const [githubSaved, setGithubSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [githubVerifyError, setGithubVerifyError] = useState<string | null>(null);
+  const [githubVerifyLoading, setGithubVerifyLoading] = useState(false);
+  const [githubSaveLoading, setGithubSaveLoading] = useState(false);
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [showPassword , setshowPassword] = useState(false)
+  const [verifyResult, setVerifyResult] = useState<VerifyGithubConfigResult | null>(null);
+  const [githubSuccessMessage, setGithubSuccessMessage] = useState<string | null>(null);
 
-  const handleGenerateApiKey = () => {
-    const name = keyName.trim() || "Untitled key";
-    const generatedKey = `cos_live_${Math.random().toString(36).slice(2, 18)}`;
+  const KeyInputRef = useRef<HTMLInputElement>(null);
 
-    setApiKeys((currentKeys) => [
-      {
-        id: `key_${Date.now()}`,
-        name,
-        keyPrefix: `${generatedKey.slice(0, 12)}••••••••`,
-        createdAt: new Date().toISOString(),
-      },
-      ...currentKeys,
-    ]);
-    setNewKey(generatedKey);
-    setKeyName("");
+  const handleGenerateApiKey = async () => {
+    setIsLoading(true);
+    setApiKeyError(null);
+    try {
+      const name = keyName.trim() || undefined;
+      const response = await generateApiKey({ name });
+      if(response && response.rawKey) {
+        setNewKey(response.rawKey);
+        setApiKeys((currentKeys) => [response.apiKey, ...currentKeys || []]);
+      }
+    } catch (error) {
+      setApiKeyError("Failed to generate API key. Please try again.");
+    } finally {
+      setKeyName("");
+      setIsLoading(false);
+    }    
   };
 
-  const handleDeleteApiKey = (id: string) => {
-    setApiKeys((currentKeys) => currentKeys.filter((apiKey) => apiKey.id !== id));
+
+  const togglePasswordVisibility = () => {
+    if (KeyInputRef.current) {
+      const inputType = KeyInputRef.current.type;
+      KeyInputRef.current.type = inputType === "password" ? "text" : "password";
+    }
+  }
+
+
+
+  const handleDeleteApiKey = async (id: string) => {
+    setApiKeyError(null);
+    try {
+      await deleteApiKey(id);
+      setApiKeys((currentKeys) => { 
+        currentKeys = currentKeys || [];
+        return currentKeys.filter((apiKey) => apiKey.id !== id);
+      });
+    } catch (error) {
+      setApiKeyError("Failed to delete API key. Please try again.");
+    }
+  };
+
+  const handleVerifyGithubConfig = async () => {
+    setGithubVerifyLoading(true);
+    setGithubVerifyError(null);
+    setGithubSuccessMessage(null);
+    setVerifyResult(null);
+    setIsVerified(false);
+    try {
+      const githubConfigToVerify = {
+        githubUsername: githubConfig.githubUsername,
+        githubRepo: githubConfig.githubRepo,
+        personalAccessToken: githubConfig.personalAccessToken,
+      };
+
+      const response = await verifyGithubConfig(githubConfigToVerify);
+      setVerifyResult(response.data);
+      setIsVerified(response.data.valid);
+      setGithubConfig((currentConfig) => ({...currentConfig, githubBranch: response.data.defaultBranch}));
+      setGithubSuccessMessage(
+        response.message ?? "GitHub repository access verified successfully."
+      );
+    } catch (error) {
+      setGithubVerifyError(
+        error instanceof ApiError || error instanceof Error
+          ? error.message
+          : "Unable to verify the GitHub configuration. Please try again."
+      );
+    } finally {
+      setGithubVerifyLoading(false);
+    }
   };
 
   const handleCopyKey = async () => {
@@ -68,10 +130,48 @@ export function SettingsPage() {
     window.setTimeout(() => setCopied(false), 1600);
   };
 
-  const handleSaveGithubConfig = () => {
-    setGithubConfig((currentConfig) => ({ ...currentConfig, isConfigured: true }));
-    setGithubSaved(true);
-    window.setTimeout(() => setGithubSaved(false), 2400);
+
+
+  const handleSaveGithubConfig = async () => {
+    if (!verifyResult?.valid || githubSaveLoading) {
+      setGithubVerifyError("Verify the GitHub configuration before saving it.");
+      return;
+    }
+
+    setGithubSaveLoading(true);
+    setGithubVerifyError(null);
+    setGithubSuccessMessage(null);
+    try {
+      const response = await updateGithubConfig(githubConfig);
+      setGithubSaved(true);
+      setGithubSuccessMessage(
+        response.message ?? "GitHub configuration saved successfully."
+      );
+    } catch (error) {
+      setGithubSaved(false);
+      setGithubVerifyError(
+        error instanceof ApiError || error instanceof Error
+          ? error.message
+          : "Unable to save the GitHub configuration. Please try again."
+      );
+    } finally {
+      setGithubSaveLoading(false);
+    }
+  };
+
+  const handleGithubFieldChange = (
+    field: keyof GithubConfigForm,
+    value: string
+  ) => {
+    setGithubConfig((currentConfig) => ({
+      ...currentConfig,
+      [field]: value,
+    }));
+    setGithubSaved(false);
+    setIsVerified(false);
+    setVerifyResult(null);
+    setGithubVerifyError(null);
+    setGithubSuccessMessage(null);
   };
 
   return (
@@ -121,15 +221,20 @@ export function SettingsPage() {
                 className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </div>
-            <button
+            <Button
               type="button"
               onClick={handleGenerateApiKey}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-indigo-light px-4 text-xs font-semibold text-white transition hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8]"
+              disabled={isLoading}
+              className=" inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-indigo-light px-4 text-xs font-semibold text-white transition hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8]" 
             >
               <Plus className="h-3.5 w-3.5" />
               Generate API key
-            </button>
+            </Button>
           </div>
+
+          {apiKeyError && (
+            <p className="mt-2 text-sm text-red-500">{apiKeyError}</p>
+          )}
 
           {newKey && (
             <div className="mt-5 rounded-xl border border-amber-300/60 bg-amber-50/70 p-4 dark:border-amber-400/20 dark:bg-amber-500/10">
@@ -142,14 +247,14 @@ export function SettingsPage() {
                     For security, the full key will not be shown again.
                   </p>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={handleCopyKey}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-300/70 px-2.5 py-1.5 text-[11px] font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-300/20 dark:text-amber-100 dark:hover:bg-amber-400/10"
                 >
                   {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                   {copied ? "Copied" : "Copy key"}
-                </button>
+                </Button>
               </div>
               <code className="mt-3 block overflow-x-auto rounded-lg bg-white/80 px-3 py-2 text-xs text-amber-950 dark:bg-black/20 dark:text-amber-100">
                 {newKey}
@@ -158,7 +263,7 @@ export function SettingsPage() {
           )}
 
           <div className="mt-6 divide-y divide-zinc-100 dark:divide-white/5">
-            {apiKeys.map((apiKey) => (
+            {apiKeys?.map((apiKey) => (
               <div key={apiKey.id} className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{apiKey.name}</p>
@@ -181,7 +286,7 @@ export function SettingsPage() {
                 </button>
               </div>
             ))}
-            {apiKeys.length === 0 && (
+            {(!apiKeys || apiKeys.length === 0) && (
               <p className="py-4 text-sm text-[#666d7c] dark:text-[#8c96aa]">
                 No API keys yet. Generate one to connect a tool.
               </p>
@@ -209,7 +314,7 @@ export function SettingsPage() {
               GitHub username
               <input
                 value={githubConfig.githubUsername}
-                onChange={(event) => setGithubConfig({ ...githubConfig, githubUsername: event.target.value, isConfigured: false })}
+                onChange={(event) => handleGithubFieldChange("githubUsername", event.target.value)}
                 placeholder="your-username"
                 className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
@@ -218,7 +323,7 @@ export function SettingsPage() {
               Repository
               <input
                 value={githubConfig.githubRepo}
-                onChange={(event) => setGithubConfig({ ...githubConfig, githubRepo: event.target.value, isConfigured: false })}
+                onChange={(event) => handleGithubFieldChange("githubRepo", event.target.value)}
                 placeholder="repository-name"
                 className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
@@ -227,37 +332,82 @@ export function SettingsPage() {
               Branch
               <input
                 value={githubConfig.githubBranch}
-                onChange={(event) => setGithubConfig({ ...githubConfig, githubBranch: event.target.value, isConfigured: false })}
+                onChange={(event) => handleGithubFieldChange("githubBranch", event.target.value)}
                 placeholder="main"
                 className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </label>
-            <label className="space-y-2 text-xs font-semibold sm:col-span-2">
+            <label className="space-y-2 relative text-xs font-semibold sm:col-span-2">
               Personal access token
+              <div className="relative mt-2">
               <input
-                value={githubConfig.githubToken}
-                onChange={(event) => setGithubConfig({ ...githubConfig, githubToken: event.target.value, isConfigured: false })}
+                ref = {KeyInputRef}
+                type="password"
+                value={githubConfig.personalAccessToken}
+                onChange={(event) => handleGithubFieldChange("personalAccessToken", event.target.value)}
                 placeholder="your-github-token"
                 className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
+              <Button
+                type="button" // Prevents form submission if placed inside a <form>
+                onClick={togglePasswordVisibility}
+                className="absolute rounded-2xl right-3 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-100 dark:hover:text-zinc-300"
+              >
+                {/* Dynamic Icon changes based on state */}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+             </div>
             </label>
           </div>
           <div className="mt-6 flex flex-col gap-3 border-t border-zinc-100 pt-5 dark:border-white/5 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-center gap-2 text-xs text-[#666d7c] dark:text-[#8c96aa]">
-              {githubConfig.isConfigured ? (
+              {githubSaved ? (
                 <><Check className="h-3.5 w-3.5 text-emerald-500" /> Configuration saved</>
               ) : (
                 <><RefreshCw className="h-3.5 w-3.5" /> Changes are local until saved</>
               )}
             </p>
+            <div className="flex gap-3">
+            <div className="self-center text-xs">
+              {githubVerifyError && (
+                <p className="text-rose-600 dark:text-rose-400" role="alert">
+                  {githubVerifyError}
+                </p>
+              )}
+              {githubSuccessMessage && !githubVerifyError && (
+                <p className="text-emerald-600 dark:text-emerald-400" role="status">
+                  {githubSuccessMessage}
+                </p>
+              )}
+            </div>
             <button
               type="button"
+              onClick={handleVerifyGithubConfig}
+              className=" h-10 flex items-center gap-2 rounded-xl border border-zinc-200 px-4 text-xs font-semibold transition hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-white/5"
+              disabled={githubVerifyLoading || githubSaveLoading}
+              >
+              <span>
+                {isVerified ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : null}
+                </span> 
+                <span>
+                {isVerified ? "Verified" : "Verify GitHub configuration"}
+                </span>
+            </button> 
+
+              <Button
+              type="button"
               onClick={handleSaveGithubConfig}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-zinc-200 px-4 text-xs font-semibold transition hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-white/5"
-            >
-              {githubSaved ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : null}
-              {githubSaved ? "Saved" : "Save GitHub configuration"}
-            </button>
+              className="h-10 gap-2 rounded-xl border border-zinc-200 px-4 text-xs font-semibold transition hover:bg-zinc-50 hover:text-black disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400 disabled:hover:bg-zinc-100 dark:border-white/10 dark:hover:bg-white/5 dark:disabled:border-white/5 dark:disabled:bg-white/5 dark:disabled:text-zinc-500 dark:disabled:hover:bg-white/5"
+              disabled={!isVerified || githubVerifyLoading || githubSaveLoading}
+              
+              >
+                {githubSaveLoading ? "Saving..." : "Save configuration"}
+              </Button>
+            </div>
           </div>
         </div>
       </section>

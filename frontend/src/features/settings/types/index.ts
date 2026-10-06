@@ -1,18 +1,30 @@
-export interface ApiKey {
+export interface ApiKeyResponse {
   id: string;
   name: string;
   keyPrefix: string;
-  lastUsedAt?: string | null;
-  expiresAt?: string | null;
-  createdAt: string;
-}
+  lastUsedAt?: Date | null;
+  expiresAt?: Date | null;
+  revokedAt?: Date | null;
+  createdAt: Date;
+ }
+
+ export interface CreateApiKeyResult {
+  apiKey: ApiKeyResponse;
+  rawKey: string;
+ }
 
 export interface GithubConfig {
-  id: string;
+  isConfigured: boolean;
+  githubUsername?: string;
+  githubRepo?: string;
+  githubBranch?: string;
+  lastSyncedAt?: string | null;
+  updatedAt?: string;
+}
+
+export interface GithubConfigForm {
   githubUsername: string;
   githubRepo: string;
   githubBranch: string;
-  githubToken: string;
-  isConfigured: boolean;
-  lastSyncedAt?: string | null;
+  personalAccessToken: string;
 }
