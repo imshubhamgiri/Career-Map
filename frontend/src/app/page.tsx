@@ -3,32 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sun, Moon, ArrowRight, Sparkles } from "lucide-react";
-import { AnimatedShinyText } from "@/components/ui/animated-shiny-text"
+import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
+import { useTheme } from "@core/hooks/use-theme";
 
 export default function LandingPage() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    // Check initial html class
-    if (document.documentElement.classList.contains("light")) {
-      setTheme("light");
-    } else {
-      setTheme("dark");
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    if (theme === "dark") {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-      setTheme("light");
-    } else {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
-      setTheme("dark");
-    }
-  };
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-[#f7f8f9] dark:bg-[#07090f] text-[#0e121c] dark:text-[#edf0f9] transition-colors duration-200 flex flex-col justify-between selection:bg-[#7c82f4]/30 selection:text-white">
