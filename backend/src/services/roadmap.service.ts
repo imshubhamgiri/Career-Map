@@ -1,4 +1,5 @@
 import { Roadmap, RoadmapStatus } from '@prisma/client';
+import { RoadmapSummary } from '../types';
 import { RoadmapRepository, RoadmapInput } from '../repositories/roadmap.repository';
 import { ProblemService } from './problems.service';
 import {logger} from '../utils/logger';
@@ -65,14 +66,30 @@ export class RoadmapService {
    * Retrieve a roadmap by ID along with its associated problems
    */
   async getRoadmapById(roadmapId: string, userId: string): Promise<Roadmap | null> {
-    return this.roadmapRepo.findRoadmapById(roadmapId);
+    return this.roadmapRepo.findRoadmapById(roadmapId, userId);
   }
 
   /**
    * List all roadmaps belonging to a specific user
    */
-  async getUserRoadmaps(userId: string): Promise<Roadmap[]> {
-    return this.roadmapRepo.findRoadmapsByUserId(userId);
+  async getUserRoadmaps(userId: string): Promise<RoadmapSummary[]> {
+    const roadmaps = await this.roadmapRepo.findRoadmapsByUserId(userId);
+
+    return roadmaps.map(({ roadmapProblems, ...roadmap }) => {
+      const totalProblems = roadmapProblems.length;
+      const solvedProblems = roadmapProblems.filter((roadmapProblem) =>
+        roadmapProblem.problem.progressEvents.some((progressEvent) => progressEvent.status === 'SOLVED')
+      ).length;
+
+      return {
+        ...roadmap,
+        totalProblems,
+        solvedProblems,
+        progressPercentage: totalProblems > 0
+          ? Math.round((solvedProblems / totalProblems) * 1000) / 10
+          : 0,
+      };
+    });
   }
 
   /**
