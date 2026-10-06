@@ -59,7 +59,7 @@ export function RevisionNotesDrawer({
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-xl bg-white dark:bg-[#10131c] border-l border-zinc-200 dark:border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto transition-colors duration-200">
+        <div className="w-screen max-w-xl bg-white dark:bg-dark-card border-l border-zinc-200 dark:border-white/10 shadow-2xl flex flex-col justify-between overflow-y-auto transition-colors duration-200">
           {/* Header */}
           <div className="p-6 border-b border-zinc-100 dark:border-white/5 flex items-start justify-between">
             <div className="space-y-1.5 pr-4">
@@ -83,7 +83,7 @@ export function RevisionNotesDrawer({
                   href={problem.originalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-[#5963e8] dark:text-[#21c6e8] hover:underline pt-0.5"
+                  className="inline-flex items-center gap-1 text-xs text-brand-indigo-light dark:text-brand-cyan hover:underline pt-0.5"
                 >
                   <span>Open on LeetCode</span>
                   <ExternalLink className="w-3 h-3" />
@@ -103,7 +103,7 @@ export function RevisionNotesDrawer({
           <div className="p-6 space-y-6 flex-1">
             {/* Complexity & Status Summary */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#f0f3f6] dark:bg-[#131822] p-3.5 rounded-xl border border-zinc-200/50 dark:border-white/5">
+              <div className="bg-light-surface dark:bg-dark-surface p-3.5 rounded-xl border border-zinc-200/50 dark:border-white/5">
                 <div className="text-[10px] uppercase font-mono tracking-wider text-[#666d7c] dark:text-[#8c96aa]">
                   Time Complexity
                 </div>
@@ -112,7 +112,7 @@ export function RevisionNotesDrawer({
                 </div>
               </div>
 
-              <div className="bg-[#f0f3f6] dark:bg-[#131822] p-3.5 rounded-xl border border-zinc-200/50 dark:border-white/5">
+              <div className="bg-light-surface dark:bg-dark-surface p-3.5 rounded-xl border border-zinc-200/50 dark:border-white/5">
                 <div className="text-[10px] uppercase font-mono tracking-wider text-[#666d7c] dark:text-[#8c96aa]">
                   Space Complexity
                 </div>
@@ -123,7 +123,7 @@ export function RevisionNotesDrawer({
             </div>
 
             {/* GitHub Sync Status Card */}
-            <div className="bg-[#f0f3f6] dark:bg-[#131822] p-4 rounded-xl border border-zinc-200/50 dark:border-white/5 space-y-2.5">
+            <div className="bg-light-surface dark:bg-dark-surface p-4 rounded-xl border border-zinc-200/50 dark:border-white/5 space-y-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#0e121c] dark:text-[#edf0f9]" viewBox="0 0 24 24" fill="currentColor">
@@ -174,11 +174,11 @@ export function RevisionNotesDrawer({
 
             {/* AI Notes / Optimal Pattern */}
             <div className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#5963e8] dark:text-[#21c6e8]">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-brand-indigo-light dark:text-brand-cyan">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>AI Revision Blueprint</span>
               </div>
-              <div className="bg-[#f0f3f6] dark:bg-[#131822] p-4 rounded-xl border border-zinc-200/50 dark:border-white/5 text-xs leading-relaxed text-[#0e121c] dark:text-[#edf0f9] whitespace-pre-line font-sans">
+              <div className="bg-light-surface dark:bg-dark-surface p-4 rounded-xl border border-zinc-200/50 dark:border-white/5 text-xs leading-relaxed text-[#0e121c] dark:text-[#edf0f9] whitespace-pre-line font-sans">
                 {problem.aiNotes ||
                   "No automated AI notes generated for this problem yet. Notes are generated automatically when a solution is submitted via the Career OS extension."}
               </div>
@@ -200,7 +200,7 @@ export function RevisionNotesDrawer({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-[#0e121c] dark:text-[#edf0f9] flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-[#5963e8] dark:text-[#7c82f4]" />
+                  <BookOpen className="w-3.5 h-3.5 text-brand-indigo-light dark:text-brand-indigo" />
                   <span>My Personal Notes & Pitfalls</span>
                 </label>
                 {savedSuccess && (
@@ -214,11 +214,11 @@ export function RevisionNotesDrawer({
                 onChange={(e) => setPersonalNotes(e.target.value)}
                 placeholder="Write your quick recall notes, tricky edge cases, or revision tips here..."
                 rows={4}
-                className="w-full text-xs p-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#07090f] text-[#0e121c] dark:text-[#edf0f9] placeholder:text-[#666d7c]/60 dark:placeholder:text-[#8c96aa]/60 focus:outline-none focus:ring-1 focus:ring-[#5963e8] dark:focus:ring-[#21c6e8] resize-none"
+                className="w-full text-xs p-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-dark-bg text-[#0e121c] dark:text-[#edf0f9] placeholder:text-[#666d7c]/60 dark:placeholder:text-[#8c96aa]/60 focus:outline-none focus:ring-1 focus:ring-brand-indigo-light dark:focus:ring-brand-cyan resize-none"
               />
               <button
                 onClick={handleSave}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white rounded-lg transition-colors cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Notes</span>

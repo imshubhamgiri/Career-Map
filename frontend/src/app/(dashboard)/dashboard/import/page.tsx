@@ -68,7 +68,7 @@ export default function ImportPage() {
     <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div>
-        <span className="text-[11px] font-mono uppercase tracking-widest text-[#5963e8] dark:text-[#21c6e8] font-semibold">
+        <span className="text-[11px] font-mono uppercase tracking-widest text-brand-indigo-light dark:text-brand-cyan font-semibold">
           INGESTION PIPELINE
         </span>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0e121c] dark:text-[#edf0f9] mt-1.5">
@@ -86,11 +86,11 @@ export default function ImportPage() {
           onClick={() => setActiveTab("url")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
             activeTab === "url"
-              ? "bg-white dark:bg-[#10131c] text-[#0e121c] dark:text-[#edf0f9] shadow-xs border border-zinc-200/80 dark:border-white/10"
+              ? "bg-white dark:bg-dark-card text-[#0e121c] dark:text-[#edf0f9] shadow-xs border border-zinc-200/80 dark:border-white/10"
               : "text-[#666d7c] dark:text-[#8c96aa] hover:text-[#0e121c] dark:hover:text-[#edf0f9]"
           }`}
         >
-          <LinkIcon className="w-4 h-4 text-[#5963e8] dark:text-[#21c6e8]" />
+          <LinkIcon className="w-4 h-4 text-brand-indigo-light dark:text-brand-cyan" />
           <span>URL / Google Drive</span>
         </button>
 
@@ -98,11 +98,11 @@ export default function ImportPage() {
           onClick={() => setActiveTab("curated")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
             activeTab === "curated"
-              ? "bg-white dark:bg-[#10131c] text-[#0e121c] dark:text-[#edf0f9] shadow-xs border border-zinc-200/80 dark:border-white/10"
+              ? "bg-white dark:bg-dark-card text-[#0e121c] dark:text-[#edf0f9] shadow-xs border border-zinc-200/80 dark:border-white/10"
               : "text-[#666d7c] dark:text-[#8c96aa] hover:text-[#0e121c] dark:hover:text-[#edf0f9]"
           }`}
         >
-          <Sparkles className="w-4 h-4 text-[#a575f9]" />
+          <Sparkles className="w-4 h-4 text-brand-violet" />
           <span>Curated Presets</span>
         </button>
 
@@ -110,11 +110,11 @@ export default function ImportPage() {
           onClick={() => setActiveTab("file")}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
             activeTab === "file"
-              ? "bg-white dark:bg-[#10131c] text-[#0e121c] dark:text-[#edf0f9] shadow-xs border border-zinc-200/80 dark:border-white/10"
+              ? "bg-white dark:bg-dark-card text-[#0e121c] dark:text-[#edf0f9] shadow-xs border border-zinc-200/80 dark:border-white/10"
               : "text-[#666d7c] dark:text-[#8c96aa] hover:text-[#0e121c] dark:hover:text-[#edf0f9]"
           }`}
         >
-          <UploadCloud className="w-4 h-4 text-[#14a0bc] dark:text-[#21c6e8]" />
+          <UploadCloud className="w-4 h-4 text-brand-cyan-light dark:text-brand-cyan" />
           <span>PDF Upload</span>
         </button>
       </div>
@@ -123,7 +123,7 @@ export default function ImportPage() {
       {activeTab === "url" && (
         <form
           onSubmit={handleUrlSubmit}
-          className="bg-white dark:bg-[#10131c] rounded-2xl p-6 sm:p-8 border border-zinc-200/80 dark:border-white/10 shadow-xs space-y-6"
+          className="bg-white dark:bg-dark-card rounded-2xl p-6 sm:p-8 border border-zinc-200/80 dark:border-white/10 shadow-xs space-y-6"
         >
           <div className="space-y-4">
             <div>
@@ -140,7 +140,7 @@ export default function ImportPage() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://docs.google.com/spreadsheets/d/... or https://neetcode.io/practice"
-                className="w-full text-sm px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#07090f] text-[#0e121c] dark:text-[#edf0f9] placeholder:text-[#666d7c]/60 dark:placeholder:text-[#8c96aa]/60 focus:outline-none focus:ring-1 focus:ring-[#5963e8] dark:focus:ring-[#21c6e8]"
+                className="w-full text-sm px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-dark-bg text-[#0e121c] dark:text-[#edf0f9] placeholder:text-[#666d7c]/60 dark:placeholder:text-[#8c96aa]/60 focus:outline-none focus:ring-1 focus:ring-brand-indigo-light dark:focus:ring-brand-cyan"
               />
               <p className="text-[11px] text-[#666d7c] dark:text-[#8c96aa] mt-1.5">
                 Google Sheets/Docs must have public read access enabled (&quot;Anyone with the link can view&quot;).
@@ -160,7 +160,7 @@ export default function ImportPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. My NeetCode 150 Sprint"
-                className="w-full text-sm px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#07090f] text-[#0e121c] dark:text-[#edf0f9] placeholder:text-[#666d7c]/60 dark:placeholder:text-[#8c96aa]/60 focus:outline-none focus:ring-1 focus:ring-[#5963e8] dark:focus:ring-[#21c6e8]"
+                className="w-full text-sm px-4 py-3 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-dark-bg text-[#0e121c] dark:text-[#edf0f9] placeholder:text-[#666d7c]/60 dark:placeholder:text-[#8c96aa]/60 focus:outline-none focus:ring-1 focus:ring-brand-indigo-light dark:focus:ring-brand-cyan"
               />
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function ImportPage() {
             <button
               type="submit"
               disabled={isSubmitting || !url.trim()}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white shadow-sm disabled:opacity-50 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white shadow-sm disabled:opacity-50 transition-all cursor-pointer"
             >
               <span>{isSubmitting ? "Extracting..." : "Start Ingestion"}</span>
               <ArrowRight className="w-4 h-4" />
@@ -235,11 +235,11 @@ export default function ImportPage() {
             ].map((preset) => (
               <div
                 key={preset.title}
-                className="bg-white dark:bg-[#10131c] rounded-2xl p-5 border border-zinc-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between hover:border-[#5963e8]/40 dark:hover:border-[#7c82f4]/40 transition-all group"
+                className="bg-white dark:bg-dark-card rounded-2xl p-5 border border-zinc-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between hover:border-brand-indigo-light/40 dark:hover:border-brand-indigo/40 transition-all group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#f0f3f6] dark:bg-[#131822] text-[#5963e8] dark:text-[#21c6e8] font-bold">
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-light-surface dark:bg-dark-surface text-brand-indigo-light dark:text-brand-cyan font-bold">
                       {preset.badge}
                     </span>
                     <span className="text-xs text-[#666d7c] dark:text-[#8c96aa]">
@@ -247,7 +247,7 @@ export default function ImportPage() {
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-base text-[#0e121c] dark:text-[#edf0f9] group-hover:text-[#5963e8] dark:group-hover:text-[#21c6e8] transition-colors">
+                  <h3 className="font-bold text-base text-[#0e121c] dark:text-[#edf0f9] group-hover:text-brand-indigo-light dark:group-hover:text-brand-cyan transition-colors">
                     {preset.title}
                   </h3>
                   <p className="text-xs text-[#666d7c] dark:text-[#8c96aa] mt-1.5 leading-relaxed">
@@ -259,7 +259,7 @@ export default function ImportPage() {
                   <button
                     onClick={() => handleCuratedImport(preset.title)}
                     disabled={isSubmitting}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white shadow-xs transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white shadow-xs transition-all cursor-pointer"
                   >
                     <span>Import Preset</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -273,8 +273,8 @@ export default function ImportPage() {
 
       {/* Tab 3: PDF Upload */}
       {activeTab === "file" && (
-        <div className="bg-white dark:bg-[#10131c] rounded-2xl p-8 border-2 border-dashed border-zinc-300 dark:border-white/15 text-center space-y-4">
-          <div className="w-12 h-12 rounded-xl bg-[#5963e8]/10 text-[#5963e8] dark:text-[#21c6e8] flex items-center justify-center mx-auto">
+        <div className="bg-white dark:bg-dark-card rounded-2xl p-8 border-2 border-dashed border-zinc-300 dark:border-white/15 text-center space-y-4">
+          <div className="w-12 h-12 rounded-xl bg-brand-indigo-light/10 text-brand-indigo-light dark:text-brand-cyan flex items-center justify-center mx-auto">
             <UploadCloud className="w-6 h-6" />
           </div>
           <div>

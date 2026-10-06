@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
           <Link
             href="/dashboard/import"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Import Roadmap</span>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="bg-white dark:bg-[#10131c] rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 h-64 animate-pulse flex flex-col justify-between"
+              className="bg-white dark:bg-dark-card rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 h-64 animate-pulse flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="w-20 h-5 bg-zinc-200 dark:bg-white/10 rounded-md" />
