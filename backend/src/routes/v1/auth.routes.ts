@@ -27,7 +27,7 @@ router.get('/me', authenticate, authController.getMe);
 router.post('/oAuth/register', oAuthRegisterBody);
 router.post('/oAuth/login', validateLoginBody);
 router.patch('/delete-account', authenticate, authController.logoutUser);
-router.delete('/delete-account', authenticate, authController.logoutUser);
+router.delete('/delete-account', authenticate, authController.deleteAccount);  
 
 export default router;
 

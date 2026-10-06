@@ -297,4 +297,14 @@ export class AuthService {
             refreshToken: newRawRefreshToken,
         };
     }
+
+    async deleteAccount(userId: string, password: string): Promise<void> {
+        const user = await this.userRepository.findUserById(userId);    
+        if(user && user.passwordHash) {
+            const compare = await verifyPassword(password , user.passwordHash);
+            if(compare){
+                await this.userRepository.deleteUserAccount(user.id);
+            }
+        }
+    }
 }

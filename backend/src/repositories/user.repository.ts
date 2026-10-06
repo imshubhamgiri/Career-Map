@@ -99,4 +99,12 @@ export class UserRepository {
             },
         });
     }
+
+    deleteUserAccount(id:string){
+        return prisma.user.delete({
+            where:{
+                id
+            }
+        })
+    }
 }

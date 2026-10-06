@@ -166,5 +166,26 @@ export class AuthController {
       next(err);
     }
   };
+
+  deleteAccount = async (
+    req: Request<{}, ApiResponse<string>, LoginInput>,
+    res: Response<ApiResponse<string>>,
+    next: NextFunction
+  ) => {
+    if(!req.user?.userId){
+      res.status(401).json({
+        success: false,
+        message: 'Unauthorized',
+        error: 'Unauthorized',
+      });
+      return;
+    }
+    await this.authService.deleteAccount(req.user.userId , req.body.password);
+
+    return res.status(200).json({
+      success:true,
+      message:'Account Deleted Successfully'
+    })
+  }
 }
 
