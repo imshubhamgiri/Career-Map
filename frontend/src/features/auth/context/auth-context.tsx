@@ -37,39 +37,63 @@ export interface AuthContextValue {
   register: (credentials: RegisterCredentials) => Promise<RegisterResponse>;
   verifyEmail: (email: string, code: string) => Promise<boolean>;
   resendVerification: (email: string) => Promise<VerificationResponse>;
+  refreshUser: () => Promise<AuthUser | null>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
   undefined,
 );
 
+// Module-level cache: persists across client-side page transitions,
+// resets naturally when browser page refresh occurs.
+let cachedUser: AuthUser | null = null;
+let sessionRestored = false;
+let ongoingRestore: Promise<AuthUser | null> | null = null;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(cachedUser);
+  const [isInitializing, setIsInitializing] = useState(!sessionRestored);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
+    // If session was already restored in this browser runtime, do not hit /auth/me again
+    if (sessionRestored) {
+      if (!cancelled) {
+        setUser(cachedUser);
+        setIsInitializing(false);
+      }
+      return;
+    }
+
     async function restoreSession() {
       try {
-        const currentUser = await getCurrentUser();
-
-        if (!cancelled) {
-          setUser(currentUser);
+        if (!ongoingRestore) {
+          ongoingRestore = getCurrentUser()
+            .then((u) => {
+              cachedUser = u;
+              sessionRestored = true;
+              return u;
+            })
+            .catch((cause) => {
+              cachedUser = null;
+              sessionRestored = true;
+              return null;
+            })
+            .finally(() => {
+              ongoingRestore = null;
+            });
         }
-      } catch (cause) {
+
+        const resolvedUser = await ongoingRestore;
+        if (!cancelled) {
+          setUser(resolvedUser);
+        }
+      } catch {
         if (!cancelled) {
           setUser(null);
-          // A 401 means there is no active session; other errors should be visible.
-          if (!(cause instanceof ApiError && cause.status === 401)) {
-            // setError(
-            //   cause instanceof Error
-            //     ? cause.message
-            //     : "Unable to restore your session.",
-            // );
-          }
         }
       } finally {
         if (!cancelled) {
@@ -96,6 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(response.message || "Unable to sign in.");
         return response;
       }
+      cachedUser = response.user;
+      sessionRestored = true;
       setUser(response.user);
       return response;
     } catch (cause) {
@@ -120,6 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(response.message || "Unable to register.");
         return response;
       }
+      cachedUser = response.user;
+      sessionRestored = true;
       setUser(response.user);
       return response;
     } catch (error) {
@@ -146,6 +174,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         cause instanceof Error ? cause.message : "Unable to sign out.",
       );
     } finally {
+      cachedUser = null;
+      sessionRestored = true;
       setUser(null);
       setIsLoading(false);
     }
@@ -160,9 +190,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setError(response.message || "Unable to verify email.");
         return false;
       }
+      cachedUser = response.user;
+      sessionRestored = true;
       setUser(response.user);
       return true;
-    }catch (cause) {
+    } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Unable to verify email.",
       );
@@ -185,6 +217,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      cachedUser = currentUser;
+      sessionRestored = true;
+      setUser(currentUser);
+      return currentUser;
+    } catch {
+      cachedUser = null;
+      sessionRestored = true;
+      setUser(null);
+      return null;
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -198,8 +245,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       verifyEmail,
       isEmailVerified: user?.isEmailVerified ?? false,
       resendVerification,
+      refreshUser,
     }),
-    [user, isInitializing, isLoading, error, login, logout, register, verifyEmail, resendVerification],
+    [user, isInitializing, isLoading, error, login, logout, register, verifyEmail, resendVerification, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
