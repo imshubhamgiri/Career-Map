@@ -77,7 +77,7 @@ export function SettingsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 pb-10 animate-in fade-in duration-300">
       <header className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5963e8] dark:text-[#21c6e8]">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-indigo-light dark:text-brand-cyan">
           Workspace settings
         </p>
         <h1 className="text-3xl font-bold tracking-tight text-[#0e121c] dark:text-[#edf0f9]">
@@ -92,7 +92,7 @@ export function SettingsPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-[#5963e8] dark:text-[#21c6e8]" />
+              <KeyRound className="h-4 w-4 text-brand-indigo-light dark:text-brand-cyan" />
               <h2 id="api-keys-heading" className="text-lg font-semibold">
                 API keys
               </h2>
@@ -107,7 +107,7 @@ export function SettingsPage() {
           </span>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-white/10 dark:bg-[#10131c] sm:p-6">
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-white/10 dark:bg-dark-card sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1 space-y-2">
               <label htmlFor="api-key-name" className="text-xs font-semibold">
@@ -118,13 +118,13 @@ export function SettingsPage() {
                 value={keyName}
                 onChange={(event) => setKeyName(event.target.value)}
                 placeholder="e.g. Browser extension"
-                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm outline-none transition focus:border-[#5963e8] focus:ring-4 focus:ring-[#5963e8]/10 dark:border-white/10 dark:focus:border-[#7c82f4]"
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </div>
             <button
               type="button"
               onClick={handleGenerateApiKey}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#5963e8] px-4 text-xs font-semibold text-white transition hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-indigo-light px-4 text-xs font-semibold text-white transition hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8]"
             >
               <Plus className="h-3.5 w-3.5" />
               Generate API key
@@ -203,7 +203,7 @@ export function SettingsPage() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-white/10 dark:bg-[#10131c] sm:p-6">
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-white/10 dark:bg-dark-card sm:p-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="space-y-2 text-xs font-semibold">
               GitHub username
@@ -211,7 +211,7 @@ export function SettingsPage() {
                 value={githubConfig.githubUsername}
                 onChange={(event) => setGithubConfig({ ...githubConfig, githubUsername: event.target.value, isConfigured: false })}
                 placeholder="your-username"
-                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-[#5963e8] focus:ring-4 focus:ring-[#5963e8]/10 dark:border-white/10 dark:focus:border-[#7c82f4]"
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </label>
             <label className="space-y-2 text-xs font-semibold">
@@ -220,7 +220,7 @@ export function SettingsPage() {
                 value={githubConfig.githubRepo}
                 onChange={(event) => setGithubConfig({ ...githubConfig, githubRepo: event.target.value, isConfigured: false })}
                 placeholder="repository-name"
-                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-[#5963e8] focus:ring-4 focus:ring-[#5963e8]/10 dark:border-white/10 dark:focus:border-[#7c82f4]"
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </label>
             <label className="space-y-2 text-xs font-semibold sm:col-span-2">
@@ -229,7 +229,7 @@ export function SettingsPage() {
                 value={githubConfig.githubBranch}
                 onChange={(event) => setGithubConfig({ ...githubConfig, githubBranch: event.target.value, isConfigured: false })}
                 placeholder="main"
-                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-[#5963e8] focus:ring-4 focus:ring-[#5963e8]/10 dark:border-white/10 dark:focus:border-[#7c82f4]"
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </label>
             <label className="space-y-2 text-xs font-semibold sm:col-span-2">
@@ -238,7 +238,7 @@ export function SettingsPage() {
                 value={githubConfig.githubToken}
                 onChange={(event) => setGithubConfig({ ...githubConfig, githubToken: event.target.value, isConfigured: false })}
                 placeholder="your-github-token"
-                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-[#5963e8] focus:ring-4 focus:ring-[#5963e8]/10 dark:border-white/10 dark:focus:border-[#7c82f4]"
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-3 text-sm font-normal outline-none transition focus:border-brand-indigo-light focus:ring-4 focus:ring-brand-indigo-light/10 dark:border-white/10 dark:focus:border-brand-indigo"
               />
             </label>
           </div>

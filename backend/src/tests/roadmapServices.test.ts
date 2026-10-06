@@ -77,12 +77,15 @@ describe('RoadmapService Unit Tests', () => {
 
       const result = await roadmapService.getRoadmapById('r-1', 'u-1');
 
-      expect(mockRoadmapRepo.findRoadmapById).toHaveBeenCalledWith('r-1');
+      expect(mockRoadmapRepo.findRoadmapById).toHaveBeenCalledWith('r-1', 'u-1');
       expect(result?.title).toBe('Roadmap');
     });
 
     it('getUserRoadmaps lists all roadmaps for a user', async () => {
-      mockRoadmapRepo.findRoadmapsByUserId.mockResolvedValueOnce([{ id: 'r-1' }, { id: 'r-2' }]);
+      mockRoadmapRepo.findRoadmapsByUserId.mockResolvedValueOnce([
+        { id: 'r-1', roadmapProblems: [] },
+        { id: 'r-2', roadmapProblems: [] },
+      ]);
 
       const result = await roadmapService.getUserRoadmaps('u-1');
 
@@ -341,4 +344,3 @@ describe('ProblemService Unit Tests', () => {
     );
   });
 });
-

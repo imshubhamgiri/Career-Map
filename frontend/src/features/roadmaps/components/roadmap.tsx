@@ -138,8 +138,8 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
 
           {/* Active Roadmap Pill */}
           <div className="pt-2">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-[#f0f3f6] dark:bg-[#131822] text-[#0e121c] dark:text-[#edf0f9] border border-zinc-200/80 dark:border-white/10">
-              <span className="w-2 h-2 rounded-full bg-[#14a0bc] dark:bg-[#21c6e8]" />
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-light-surface dark:bg-dark-surface text-[#0e121c] dark:text-[#edf0f9] border border-zinc-200/80 dark:border-white/10">
+              <span className="w-2 h-2 rounded-full bg-brand-cyan-light dark:bg-brand-cyan" />
               <span className="text-[#666d7c] dark:text-[#8c96aa]">Active roadmap:</span>
               <span className="font-semibold">{roadmap.title}</span>
             </span>
@@ -160,7 +160,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
       {/* 2. Metrics & Today's Queue Row (Matching Figma Layout) */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
         {/* Metric 1: Problems Solved */}
-        <div className="md:col-span-3 bg-white dark:bg-[#10131c] rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between">
+        <div className="md:col-span-3 bg-white dark:bg-dark-card rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between">
           <div className="text-[11px] font-mono uppercase tracking-wider text-[#666d7c] dark:text-[#8c96aa] font-semibold">
             Problems Solved
           </div>
@@ -178,7 +178,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
         </div>
 
         {/* Metric 2: Overall Progress */}
-        <div className="md:col-span-4 bg-white dark:bg-[#10131c] rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between">
+        <div className="md:col-span-4 bg-white dark:bg-dark-card rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 shadow-xs flex flex-col justify-between">
           <div className="text-[11px] font-mono uppercase tracking-wider text-[#666d7c] dark:text-[#8c96aa] font-semibold">
             Overall Progress
           </div>
@@ -187,25 +187,25 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
               {roadmap.progressPercentage}%
             </div>
             {/* Segmented brand progress bar */}
-            <div className="h-2 w-full rounded-full bg-[#f0f3f6] dark:bg-[#1f2533] overflow-hidden mt-4">
+            <div className="h-2 w-full rounded-full bg-light-surface dark:bg-[#1f2533] overflow-hidden mt-4">
               <div
-                className="h-full bg-gradient-to-r from-[#5963e8] via-[#a575f9] to-[#21c6e8] rounded-full transition-all duration-500"
+                className="h-full bg-linear-to-r from-brand-indigo-light via-brand-violet to-brand-cyan rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.max(0, roadmap.progressPercentage))}%` }}
               />
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between text-xs text-[#666d7c] dark:text-[#8c96aa]">
             <span>Roadmap Completion</span>
-            <span className="font-mono text-[#5963e8] dark:text-[#21c6e8]">
+            <span className="font-mono text-brand-indigo-light dark:text-brand-cyan">
               {roadmap.totalProblems - roadmap.solvedProblems} left
             </span>
           </div>
         </div>
 
         {/* Metric 3: Today's Queue Card (Highlighted Figma Card) */}
-        <div className="md:col-span-5 bg-[#f0f3f6]/90 dark:bg-[#131822] rounded-2xl p-6 border border-[#5963e8]/20 dark:border-[#21c6e8]/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-light-surface/90 dark:bg-dark-surface rounded-2xl p-6 border border-brand-indigo-light/20 dark:border-brand-cyan/20 shadow-sm flex flex-col justify-between relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#5963e8] dark:text-[#21c6e8] flex items-center gap-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-brand-indigo-light dark:text-brand-cyan flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
               Today&apos;s Queue
             </span>
@@ -243,7 +243,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                     }
                   }
                 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white transition-all shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white transition-all shadow-xs cursor-pointer"
               >
                 <span>Solve next</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -266,7 +266,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 bg-[#f0f3f6] dark:bg-[#10131c] p-1 rounded-xl border border-zinc-200/60 dark:border-white/5 text-xs font-medium">
+          <div className="flex items-center gap-1.5 bg-light-surface dark:bg-dark-card p-1 rounded-xl border border-zinc-200/60 dark:border-white/5 text-xs font-medium">
             <button
               onClick={() => setStatusFilter("ALL")}
               className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
@@ -317,12 +317,12 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
             return (
               <div
                 key={topicGroup.topic}
-                className="bg-white dark:bg-[#10131c] rounded-2xl border border-zinc-200/80 dark:border-white/10 overflow-hidden shadow-xs transition-colors duration-200"
+                className="bg-white dark:bg-dark-card rounded-2xl border border-zinc-200/80 dark:border-white/10 overflow-hidden shadow-xs transition-colors duration-200"
               >
                 {/* Topic Header */}
                 <div
                   onClick={() => toggleTopic(topicGroup.topic)}
-                  className="px-6 py-4.5 flex items-center justify-between cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] transition-colors select-none"
+                  className="px-6 py-4.5 flex items-center justify-between cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-white/2 transition-colors select-none"
                 >
                   <div className="flex items-center gap-3">
                     <span className="font-semibold text-base sm:text-lg text-[#0e121c] dark:text-[#edf0f9]">
@@ -336,9 +336,9 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                   <div className="flex items-center gap-4">
                     {/* Mini topic progress bar */}
                     <div className="hidden sm:flex items-center gap-2">
-                      <div className="w-24 h-1.5 rounded-full bg-[#f0f3f6] dark:bg-[#1f2533] overflow-hidden">
+                      <div className="w-24 h-1.5 rounded-full bg-light-surface dark:bg-[#1f2533] overflow-hidden">
                         <div
-                          className="h-full bg-[#5963e8] dark:bg-[#7c82f4] rounded-full"
+                          className="h-full bg-brand-indigo-light dark:bg-brand-indigo rounded-full"
                           style={{ width: `${topicGroup.progressPercentage}%` }}
                         />
                       </div>
@@ -363,7 +363,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                 {/* Progress underline accent in topic header */}
                 <div className="h-[2px] w-full bg-zinc-100 dark:bg-white/5 relative">
                   <div
-                    className="h-full bg-gradient-to-r from-[#5963e8] to-[#21c6e8] transition-all duration-300"
+                    className="h-full bg-linear-to-r from-brand-indigo-light to-brand-cyan transition-all duration-300"
                     style={{ width: `${topicGroup.progressPercentage}%` }}
                   />
                 </div>
@@ -378,7 +378,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                       return (
                         <div
                           key={problem.problemId}
-                          className="px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/[0.015] transition-colors group"
+                          className="px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/70 dark:hover:bg-white/1.5 transition-colors group"
                         >
                           {/* Left: Status Icon & Title */}
                           <div className="flex items-center gap-3.5 min-w-0">
@@ -420,7 +420,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                                   href={problem.originalUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[#666d7c] dark:text-[#8c96aa] hover:text-[#5963e8] dark:hover:text-[#21c6e8] transition-colors"
+                                  className="text-[#666d7c] dark:text-[#8c96aa] hover:text-brand-indigo-light dark:hover:text-brand-cyan transition-colors"
                                   title="Open in LeetCode"
                                 >
                                   <ExternalLink className="w-3.5 h-3.5 opacity-60 hover:opacity-100" />
@@ -454,7 +454,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                               <svg
                                 className={`w-4 h-4 transition-all ${
                                   problem.githubSyncStatus === "SYNCED"
-                                    ? "text-[#14a0bc] dark:text-[#21c6e8] opacity-100"
+                                    ? "text-brand-cyan-light dark:text-brand-cyan opacity-100"
                                     : problem.githubSyncStatus === "PENDING"
                                     ? "text-amber-500 animate-pulse opacity-90"
                                     : "text-zinc-400 dark:text-zinc-600 opacity-30 hover:opacity-60"
@@ -472,7 +472,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[#666d7c] dark:text-[#8c96aa] hover:text-[#0e121c] dark:hover:text-[#edf0f9] hover:bg-zinc-100 dark:hover:bg-white/5 border border-zinc-200/60 dark:border-white/5 transition-colors cursor-pointer"
                               title="Open AI revision blueprint and personal notes"
                             >
-                              <FileText className="w-3.5 h-3.5 text-[#5963e8] dark:text-[#7c82f4]" />
+                              <FileText className="w-3.5 h-3.5 text-brand-indigo-light dark:text-brand-indigo" />
                               <span>Notes</span>
                             </button>
 
@@ -492,7 +492,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                                   }
                                   toggleProblemStatus(problem.problemId);
                                 }}
-                                className="px-3.5 py-1 rounded-lg text-xs font-medium bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white transition-all shadow-xs cursor-pointer min-w-[70px]"
+                                className="px-3.5 py-1 rounded-lg text-xs font-medium bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white transition-all shadow-xs cursor-pointer min-w-[70px]"
                               >
                                 Solve
                               </button>

@@ -82,7 +82,7 @@ export default function SpecificRoadmapPage({
         <div className="pt-2">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-[#5963e8] dark:bg-[#7c82f4] text-white"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-brand-indigo-light dark:bg-brand-indigo text-white"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>

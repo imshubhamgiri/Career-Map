@@ -23,11 +23,11 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
   });
 
   return (
-    <div className="bg-white dark:bg-[#10131c] rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 shadow-xs hover:border-[#5963e8]/40 dark:hover:border-[#7c82f4]/40 transition-all duration-200 flex flex-col justify-between group">
+    <div className="bg-white dark:bg-dark-card rounded-2xl p-6 border border-zinc-200/80 dark:border-white/10 shadow-xs hover:border-brand-indigo-light/40 dark:hover:border-brand-indigo/40 transition-all duration-200 flex flex-col justify-between group">
       <div>
         {/* Top Badges */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <span className="text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#f0f3f6] dark:bg-[#131822] text-[#5963e8] dark:text-[#21c6e8] border border-zinc-200/60 dark:border-white/5 font-semibold">
+          <span className="text-[11px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-md bg-light-surface dark:bg-dark-surface text-brand-indigo-light dark:text-brand-cyan border border-zinc-200/60 dark:border-white/5 font-semibold">
             {roadmap.sourceType || "CURATED"}
           </span>
 
@@ -38,7 +38,7 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
         </div>
 
         {/* Roadmap Title */}
-        <h3 className="text-xl font-bold text-[#0e121c] dark:text-[#edf0f9] tracking-tight group-hover:text-[#5963e8] dark:group-hover:text-[#21c6e8] transition-colors">
+        <h3 className="text-xl font-bold text-[#0e121c] dark:text-[#edf0f9] tracking-tight group-hover:text-brand-indigo-light dark:group-hover:text-brand-cyan transition-colors">
           {roadmap.title}
         </h3>
 
@@ -53,9 +53,9 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
             </span>
           </div>
 
-          <div className="h-2 w-full rounded-full bg-[#f0f3f6] dark:bg-[#1f2533] overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-light-surface dark:bg-[#1f2533] overflow-hidden">
             <div
-              className="h-full bg-linear-to-r from-[#5963e8] to-[#21c6e8] rounded-full transition-all duration-500"
+              className="h-full bg-linear-to-r from-brand-indigo-light to-brand-cyan rounded-full transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(percentage > 0 ? 3 : 0, percentage))}%` }}
             />
           </div>
@@ -78,7 +78,7 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
 
         <Link
           href={`/dashboard/roadmap/${roadmap.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5963e8] dark:text-[#21c6e8] group-hover:translate-x-0.5 transition-transform"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-indigo-light dark:text-brand-cyan group-hover:translate-x-0.5 transition-transform"
         >
           <span>Open Roadmap</span>
           <ArrowRight className="w-3.5 h-3.5" />

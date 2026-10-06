@@ -10,11 +10,11 @@ export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-[#f7f8f9] dark:bg-[#07090f] text-[#0e121c] dark:text-[#edf0f9] transition-colors duration-200 flex flex-col justify-between selection:bg-[#7c82f4]/30 selection:text-white">
+    <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-[#0e121c] dark:text-[#edf0f9] transition-colors duration-200 flex flex-col justify-between selection:bg-brand-indigo/30 selection:text-white">
       {/* Top Header / Brand */}
       <header className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-14 pt-8 pb-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="font-mono text-base font-bold text-[#14a0bc] dark:text-[#21c6e8] tracking-tight">
+          <span className="font-mono text-base font-bold text-brand-cyan-light dark:text-brand-cyan tracking-tight">
             [io]
           </span>
           <span className="font-semibold text-lg tracking-tight text-[#0e121c] dark:text-[#edf0f9]">
@@ -31,12 +31,12 @@ export default function LandingPage() {
           >
             {theme === "dark" ? (
               <>
-                <Sun className="w-3.5 h-3.5 text-[#21c6e8]" />
+                <Sun className="w-3.5 h-3.5 text-brand-cyan" />
                 <span>Light mode</span>
               </>
             ) : (
               <>
-                <Moon className="w-3.5 h-3.5 text-[#5963e8]" />
+                <Moon className="w-3.5 h-3.5 text-brand-indigo-light" />
                 <span>Dark mode</span>
               </>
             )}
@@ -72,7 +72,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 href="/login"
-                className="bg-[#5963e8] hover:bg-[#4b55dc] dark:bg-[#7c82f4] dark:hover:bg-[#6c72e8] text-white dark:text-[#edf0f9] px-6 py-3 rounded-xl font-medium text-sm transition-all shadow-sm flex items-center gap-2"
+                className="bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white dark:text-[#edf0f9] px-6 py-3 rounded-xl font-medium text-sm transition-all shadow-sm flex items-center gap-2"
                 prefetch= {false}
               >
                 <span>Get started</span>
@@ -89,7 +89,7 @@ export default function LandingPage() {
 
             {/* AI Badge */}
             <div className="pt-2">
-              <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium bg-[#f0f3f6] dark:bg-[#131822] text-[#5963e8] dark:text-[#21c6e8] border border-[#5963e8]/20 dark:border-[#21c6e8]/25">
+              <span className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium bg-light-surface dark:bg-dark-surface text-brand-indigo-light dark:text-brand-cyan border border-brand-indigo-light/20 dark:border-brand-cyan/25">
                 <Sparkles className="w-3.5 h-3.5" />
                 AI-powered career workspace
               </span>
@@ -98,12 +98,12 @@ export default function LandingPage() {
 
           {/* Right Column: Preview Card */}
           <div className="lg:col-span-5 flex justify-center lg:justify-end">
-            <div className="w-full max-w-[560px] bg-white dark:bg-[#10131c] rounded-[28px] p-7 sm:p-8 border border-zinc-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl relative overflow-hidden transition-colors duration-200">
+            <div className="w-full max-w-[560px] bg-white dark:bg-dark-card rounded-[28px] p-7 sm:p-8 border border-zinc-200/80 dark:border-white/10 shadow-xl dark:shadow-2xl relative overflow-hidden transition-colors duration-200">
               {/* Top Accent Line */}
               <div className="h-[2px] w-full rounded-full bg-[rgba(89,99,232,0.25)] dark:bg-[rgba(124,130,244,0.35)] mb-6" />
 
               {/* Card Sub-heading */}
-              <div className="text-[11px] font-mono tracking-widest uppercase font-semibold text-[#5963e8] dark:text-[#21c6e8]">
+              <div className="text-[11px] font-mono tracking-widest uppercase font-semibold text-brand-indigo-light dark:text-brand-cyan">
                 CAREER OS
               </div>
 
@@ -121,7 +121,7 @@ export default function LandingPage() {
               {/* Metric Cards Grid */}
               <div className="grid grid-cols-2 gap-3.5 my-6">
                 {/* Metric 1: Problems Solved */}
-                <div className="bg-[#f0f3f6] dark:bg-[#131822] rounded-[18px] p-5 border border-zinc-200/50 dark:border-white/5 transition-colors duration-200">
+                <div className="bg-light-surface dark:bg-dark-surface rounded-[18px] p-5 border border-zinc-200/50 dark:border-white/5 transition-colors duration-200">
                   <div className="text-[#666d7c] dark:text-[#8c96aa] text-[11px] font-semibold tracking-wider uppercase">
                     PROBLEMS SOLVED
                   </div>
@@ -134,8 +134,8 @@ export default function LandingPage() {
                 </div>
 
                 {/* Metric 2: Today's Queue */}
-                <div className="bg-[#f0f3f6] dark:bg-[#131822] rounded-[18px] p-5 border border-zinc-200/50 dark:border-white/5 transition-colors duration-200">
-                  <div className="text-[#5963e8] dark:text-[#21c6e8] text-[11px] font-semibold tracking-wider uppercase">
+                <div className="bg-light-surface dark:bg-dark-surface rounded-[18px] p-5 border border-zinc-200/50 dark:border-white/5 transition-colors duration-200">
+                  <div className="text-brand-indigo-light dark:text-brand-cyan text-[11px] font-semibold tracking-wider uppercase">
                     TODAY&apos;S QUEUE
                   </div>
                   <div className="text-[#0e121c] dark:text-[#edf0f9] text-2xl sm:text-3xl font-bold tracking-tight mt-2">
@@ -154,9 +154,9 @@ export default function LandingPage() {
                 </div>
 
                 {/* Segmented Progress Bar */}
-                <div className="h-[7px] w-full rounded-full bg-[#f0f3f6] dark:bg-[#262b38] overflow-hidden flex transition-colors duration-200">
-                  <div className="h-full w-[52%] bg-[#5963e8] dark:bg-[#7c82f4] rounded-l-full" />
-                  <div className="h-full w-[13%] bg-[#14a0bc] dark:bg-[#21c6e8]" />
+                <div className="h-[7px] w-full rounded-full bg-light-surface dark:bg-[#262b38] overflow-hidden flex transition-colors duration-200">
+                  <div className="h-full w-[52%] bg-brand-indigo-light dark:bg-brand-indigo rounded-l-full" />
+                  <div className="h-full w-[13%] bg-brand-cyan-light dark:bg-brand-cyan" />
                   <div className="h-full w-[35%]" />
                 </div>
 
