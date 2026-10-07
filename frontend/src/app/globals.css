@@ -16,6 +16,12 @@
   --color-light-bg: #f7f8f9;
   --color-light-card: #ffffff;
   --color-light-surface: #f0f3f6;
+
+  /* User editorial light mode palette */
+  --color-warm-cream: #FCF0DA;
+  --color-warm-ice: #AEC4D4;
+  --color-warm-espresso: #4D2A00;
+  --color-warm-slate: #757D6F;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
