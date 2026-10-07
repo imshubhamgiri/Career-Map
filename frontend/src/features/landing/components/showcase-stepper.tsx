@@ -36,11 +36,11 @@ export function ShowcaseStepper({
               className={`relative px-3.5 py-1.5 rounded-full text-xs font-mono font-medium transition-all shrink-0 cursor-pointer flex items-center gap-2 overflow-hidden border ${
                 isActive
                   ? /* Light Mode Active */
-                    "bg-[#4D2A00] text-[#FCF0DA] border-[#4D2A00] shadow-sm " +
+                    "bg-warm-espresso text-warm-cream border-warm-espresso shadow-sm " +
                     /* Dark Mode Active */
-                    "dark:bg-gradient-to-r dark:from-brand-indigo/30 dark:via-brand-cyan/20 dark:to-brand-indigo/30 dark:text-white dark:border-brand-cyan/50 dark:shadow-[0_0_18px_rgba(33,198,232,0.25)]"
+                    "dark:bg-linear-to-r dark:from-brand-indigo/30 dark:via-brand-cyan/20 dark:to-brand-indigo/30 dark:text-white dark:border-brand-cyan/50 dark:shadow-[0_0_18px_rgba(33,198,232,0.25)]"
                   : /* Inactive */
-                    "bg-[#FCF0DA]/50 hover:bg-[#FCF0DA] text-[#757D6F] hover:text-[#4D2A00] border-[#AEC4D4]/60 " +
+                    "bg-warm-cream/50 hover:bg-warm-cream text-warm-slate hover:text-warm-espresso border-warm-ice/60 " +
                     "dark:bg-white/5 dark:hover:bg-white/10 dark:text-zinc-400 dark:hover:text-zinc-100 dark:border-white/10"
               }`}
             >
@@ -48,7 +48,7 @@ export function ShowcaseStepper({
               {isActive && (
                 <div
                   className="absolute bottom-0 left-0 top-0 opacity-20 pointer-events-none transition-all duration-100
-                    bg-[#FCF0DA] dark:bg-brand-cyan"
+                    bg-warm-cream dark:bg-brand-cyan"
                   style={{ width: `${progressPercent}%` }}
                 />
               )}
@@ -68,17 +68,17 @@ export function ShowcaseStepper({
           onClick={onTogglePlay}
           aria-label={isPlaying ? "Pause animation" : "Play animation"}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors cursor-pointer
-            bg-[#FCF0DA]/70 border-[#AEC4D4] text-[#4D2A00] hover:bg-[#FCF0DA]
+            bg-warm-cream/70 border-warm-ice text-warm-espresso hover:bg-warm-cream
             dark:bg-white/5 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white"
         >
           {isPlaying ? (
             <>
-              <Pause className="w-3 h-3 text-[#4D2A00] dark:text-brand-cyan" />
+              <Pause className="w-3 h-3 text-warm-espresso dark:text-brand-cyan" />
               <span>Pause</span>
             </>
           ) : (
             <>
-              <Play className="w-3 h-3 text-[#4D2A00] dark:text-brand-cyan fill-current" />
+              <Play className="w-3 h-3 text-warm-espresso dark:text-brand-cyan fill-current" />
               <span>Auto-Play</span>
             </>
           )}
@@ -88,7 +88,7 @@ export function ShowcaseStepper({
           onClick={onReset}
           aria-label="Restart walkthrough from step 1"
           className="p-1.5 rounded-full border transition-colors cursor-pointer
-            bg-[#FCF0DA]/70 border-[#AEC4D4] text-[#4D2A00] hover:bg-[#FCF0DA]
+            bg-warm-cream/70 border-warm-ice text-warm-espresso hover:bg-warm-cream
             dark:bg-white/5 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white"
           title="Restart from step 1"
         >

@@ -10,7 +10,7 @@ export function StageSubmission() {
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col space-y-3 font-sans">
       {/* LeetCode Header Nav Bar */}
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-750 text-xs">
+      <div className="flex items-center justify-between pb-2 border-b border-zinc-800 text-xs">
         <div className="flex items-center gap-3">
           {/* LeetCode Logo simulation */}
           <div className="flex items-center gap-1.5 font-bold tracking-tight text-white">

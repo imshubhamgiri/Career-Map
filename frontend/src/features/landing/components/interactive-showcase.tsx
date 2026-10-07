@@ -156,32 +156,32 @@ export function InteractiveShowcase() {
       {/* Decorative background radiance */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none rounded-full blur-[140px] -z-10
         /* Light mode warm glow */
-        bg-gradient-to-tr from-[#FCF0DA] via-[#AEC4D4]/40 to-[#FCF0DA]
+        bg-linear-to-tr from-warm-cream via-warm-ice/40 to-warm-cream
         /* Dark mode shiny black gradient */
-        dark:bg-gradient-to-tr dark:from-brand-indigo/15 dark:via-brand-cyan/10 dark:to-transparent"
+        dark:bg-linear-to-tr dark:from-brand-indigo/15 dark:via-brand-cyan/10 dark:to-transparent"
       />
 
       {/* Section Header */}
       <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-4 mb-10">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold
-          bg-[#FCF0DA] text-[#4D2A00] border border-[#AEC4D4] shadow-xs
+          bg-warm-cream text-warm-espresso border border-warm-ice shadow-xs
           dark:bg-white/5 dark:text-brand-cyan dark:border-white/10 dark:shadow-[0_0_15px_rgba(33,198,232,0.15)]"
         >
-          <Sparkles className="w-3.5 h-3.5 text-[#4D2A00] dark:text-brand-cyan" />
+          <Sparkles className="w-3.5 h-3.5 text-warm-espresso dark:text-brand-cyan" />
           <span>HOW CAREER OS ACTUALLY WORKS</span>
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15]
-          text-[#4D2A00] dark:text-[#edf0f9]"
+          text-warm-espresso dark:text-[#edf0f9]"
         >
           See the whole journey.
           <br />
-          <span className="bg-gradient-to-r from-[#4D2A00] via-[#757D6F] to-[#4D2A00] dark:from-brand-indigo dark:via-brand-violet dark:to-brand-cyan bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-warm-espresso via-warm-slate to-warm-espresso dark:from-brand-indigo dark:via-brand-violet dark:to-brand-cyan bg-clip-text text-transparent">
             From roadmap to LeetCode solve and notes.
           </span>
         </h2>
 
-        <p className="text-sm sm:text-base leading-relaxed text-[#757D6F] dark:text-[#8c96aa] max-w-2xl">
+        <p className="text-sm sm:text-base leading-relaxed text-warm-slate dark:text-[#8c96aa] max-w-2xl">
           No complicated setup or robotic buzzwords. Here is exactly how you import roadmaps, solve on LeetCode, and let Career OS track progress and generate your notes.
         </p>
       </div>
@@ -205,40 +205,40 @@ export function InteractiveShowcase() {
         <div className="lg:col-span-5 flex flex-col justify-center space-y-5">
           <div className="rounded-3xl p-6 sm:p-7 border transition-all duration-300
             /* Light Mode Warm Editorial */
-            bg-white/90 border-[#AEC4D4] text-[#4D2A00] shadow-sm
+            bg-white/90 border-warm-ice text-warm-espresso shadow-sm
             /* Dark Mode Shiny Pitch Black */
-            dark:bg-gradient-to-b dark:from-[#090c14] dark:to-black dark:border-white/10 dark:text-[#edf0f9] dark:shadow-[0_15px_40px_rgba(0,0,0,0.8)]"
+            dark:bg-linear-to-b dark:from-[#090c14] dark:to-black dark:border-white/10 dark:text-[#edf0f9] dark:shadow-[0_15px_40px_rgba(0,0,0,0.8)]"
           >
             {/* Step pill */}
             <div className="flex items-center gap-2 mb-3">
               <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md
-                bg-[#FCF0DA] text-[#4D2A00] border border-[#AEC4D4]
+                bg-warm-cream text-warm-espresso border border-warm-ice
                 dark:bg-brand-indigo/20 dark:text-brand-cyan dark:border-brand-indigo/30"
               >
                 STEP {currentStep.stepNumber}
               </span>
-              <span className="text-xs font-mono text-[#757D6F] dark:text-zinc-400">
+              <span className="text-xs font-mono text-warm-slate dark:text-zinc-400">
                 / 07
               </span>
             </div>
 
             {/* Title */}
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-[#4D2A00] dark:text-white leading-snug">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-warm-espresso dark:text-white leading-snug">
               {currentStep.title}
             </h3>
 
             {/* Description */}
-            <p className="text-sm leading-relaxed text-[#757D6F] dark:text-[#8c96aa] mt-3">
+            <p className="text-sm leading-relaxed text-warm-slate dark:text-[#8c96aa] mt-3">
               {currentStep.description}
             </p>
 
             {/* Feature Bullets (Takeaways) */}
             {currentStep.takeaways && (
-              <div className="pt-4 border-t border-[#AEC4D4]/30 dark:border-white/10 mt-5 space-y-2.5">
+              <div className="pt-4 border-t border-warm-ice/30 dark:border-white/10 mt-5 space-y-2.5">
                 {currentStep.takeaways.map((takeaway, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 text-xs font-medium text-[#4D2A00] dark:text-zinc-200"
+                    className="flex items-center gap-2 text-xs font-medium text-warm-espresso dark:text-zinc-200"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>{takeaway}</span>
@@ -256,7 +256,7 @@ export function InteractiveShowcase() {
                   (activeStepIndex - 1 + SHOWCASE_STEPS.length) % SHOWCASE_STEPS.length
                 )
               }
-              className="text-[#757D6F] hover:text-[#4D2A00] dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+              className="text-warm-slate hover:text-warm-espresso dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
             >
               ← Previous Step
             </button>
@@ -264,7 +264,7 @@ export function InteractiveShowcase() {
               onClick={() =>
                 handleSelectStep((activeStepIndex + 1) % SHOWCASE_STEPS.length)
               }
-              className="text-[#4D2A00] font-bold dark:text-brand-cyan hover:underline transition-colors cursor-pointer flex items-center gap-1"
+              className="text-warm-espresso font-bold dark:text-brand-cyan hover:underline transition-colors cursor-pointer flex items-center gap-1"
             >
               <span>Next Step</span>
               <ArrowRight className="w-3 h-3" />
