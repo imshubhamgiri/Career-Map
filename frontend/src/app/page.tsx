@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Sun, Moon, ArrowRight, Sparkles } from "lucide-react";
 import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import { useTheme } from "@core/hooks/use-theme";
+import { InteractiveShowcase } from "@/features/landing";
 
 export default function LandingPage() {
   const { theme, toggleTheme } = useTheme();
@@ -171,6 +172,9 @@ export default function LandingPage() {
           </div>
         </div>
       </main>
+
+      {/* Interactive 7-Step Lifecycle Showcase */}
+      <InteractiveShowcase />
 
       {/* Footer */}
       <footer className="w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-14 py-8 border-t border-zinc-200/60 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
