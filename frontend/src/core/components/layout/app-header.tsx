@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from "react";
 
 export function AppHeader() {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, mounted, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -89,7 +89,7 @@ export function AppHeader() {
             aria-label="Toggle theme"
             className="p-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 text-[#666d7c] dark:text-[#8c96aa] hover:text-[#0e121c] dark:hover:text-[#edf0f9] transition-colors cursor-pointer"
           >
-            {theme === "dark" ? (
+            {!mounted ? null : theme === "dark" ? (
               <Sun className="w-4 h-4 text-brand-cyan" />
             ) : (
               <Moon className="w-4 h-4 text-brand-indigo-light" />

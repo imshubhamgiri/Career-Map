@@ -6,30 +6,24 @@ type Theme = "dark" | "light";
 
 interface ThemeContextType {
   theme: Theme;
+  mounted: boolean;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  initialTheme?: Theme;
+}
 
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem("cos-theme") as Theme | null;
-    if (saved === "light" || saved === "dark") {
-      setThemeState(saved);
-      applyTheme(saved);
-    } else {
-      const isDark = document.documentElement.classList.contains("dark") || 
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial = isDark ? "dark" : "light";
-      setThemeState(initial);
-      applyTheme(initial);
-    }
-  }, []);
+export function ThemeProvider({
+  children,
+  initialTheme = "dark",
+}: ThemeProviderProps) {
+  const [theme, setThemeState] = useState<Theme>(initialTheme);
+  const [mounted, setMounted] = useState(false);
 
   function applyTheme(newTheme: Theme) {
     if (newTheme === "dark") {
@@ -39,21 +33,39 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove("dark");
       document.documentElement.classList.add("light");
     }
+    try {
+      localStorage.setItem("cos-theme", newTheme);
+      document.cookie = `cos-theme=${newTheme}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {}
+    setThemeState(newTheme);
   }
 
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const saved = localStorage.getItem("cos-theme") as Theme | null;
+      if (saved && (saved === "light" || saved === "dark")) {
+        if (saved !== theme) {
+          applyTheme(saved);
+        }
+      } else {
+        localStorage.setItem("cos-theme", initialTheme);
+        document.cookie = `cos-theme=${initialTheme}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+    } catch {}
+  }, []);
+
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem("cos-theme", newTheme);
     applyTheme(newTheme);
   };
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
+    applyTheme(next);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, mounted, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -62,9 +74,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    // Graceful fallback for non-provider components
     return {
       theme: "dark" as Theme,
+      mounted: false,
       setTheme: () => {},
       toggleTheme: () => {},
     };
