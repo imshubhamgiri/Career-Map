@@ -22,6 +22,7 @@ export class ApiError extends Error {
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   params?: Record<string, string | number | boolean | undefined | null>;
   body?: unknown;
+  skipAuthRefresh?: boolean;
 }
 
 let refreshPromise: Promise<boolean> | null = null;
@@ -71,7 +72,13 @@ class ApiClient {
     endpoint: string,
     options: RequestOptions = {},
   ): Promise<T> {
-    const { params, body, headers: customHeaders, ...requestInit } = options;
+    const {
+      params,
+      body,
+      headers: customHeaders,
+      skipAuthRefresh = false,
+      ...requestInit 
+    } = options;
     const headers = new Headers(customHeaders);
     let resolvedBody: BodyInit | undefined;
 
@@ -100,7 +107,7 @@ class ApiClient {
     const isAuthRoute =
       endpoint.includes("/auth/login") || endpoint.includes("/auth/refresh");
 
-    if (response.status === 401 && !isAuthRoute) {
+    if (response.status === 401 && !isAuthRoute && !skipAuthRefresh) {
       const refreshed = await this.refreshSession();
       if (refreshed) {
         response = await this.fetch(endpoint, params, requestConfig);

@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   getCurrentUser,
   logoutUser,
@@ -51,6 +52,7 @@ let sessionRestored = false;
 let ongoingRestore: Promise<AuthUser | null> | null = null;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(cachedUser);
   const [isInitializing, setIsInitializing] = useState(!sessionRestored);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,8 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const isAuthPage = pathname === "/login" || pathname === "/register";
 
-    // If session was already restored in this browser runtime, do not hit /auth/me again
     if (sessionRestored) {
       if (!cancelled) {
         setUser(cachedUser);
@@ -68,19 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    setIsInitializing(true);
+
     async function restoreSession() {
       try {
         if (!ongoingRestore) {
-          ongoingRestore = getCurrentUser()
+          ongoingRestore = getCurrentUser({ skipAuthRefresh: isAuthPage })
             .then((u) => {
               cachedUser = u;
               sessionRestored = true;
               return u;
-            })
-            .catch((cause) => {
-              cachedUser = null;
-              sessionRestored = true;
-              return null;
             })
             .finally(() => {
               ongoingRestore = null;
@@ -92,6 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(resolvedUser);
         }
       } catch {
+        cachedUser = null;
+        // A failed auth-page check must not prevent a later protected route
+        // from retrying with the refresh token.
+        sessionRestored = !isAuthPage;
         if (!cancelled) {
           setUser(null);
         }
@@ -107,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     setIsLoading(true);

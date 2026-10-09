@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/use-auth";
 import type { RegisterCredentials } from "../types";
@@ -8,9 +8,15 @@ import { AuthForm, type AuthFormValues } from "./form";
 import { InputOTPForm } from "./otp-verification";
 
 export function RegisterForm() {
-  const { error, isInitializing, isLoading, register } = useAuth();
+  const { error, isAuthenticated, isInitializing, isLoading, register } = useAuth();
   const router = useRouter();
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isInitializing && isAuthenticated && !pendingEmail) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, isInitializing, pendingEmail, router]);
 
   async function handleSubmit(values: AuthFormValues) {
     const credentials: RegisterCredentials = {

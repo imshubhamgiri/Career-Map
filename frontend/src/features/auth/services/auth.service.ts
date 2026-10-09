@@ -68,8 +68,10 @@ export async function resendVerification(email: string): Promise<VerificationRes
   return apiClient.post<VerificationResponse>("/auth/resend-verification", { email });
 }
 
-export async function getCurrentUser(): Promise<AuthUser> {
-  const response = await apiClient.get<{ user: AuthUser }>("/auth/me");
+export async function getCurrentUser(
+  options?: { skipAuthRefresh?: boolean },
+): Promise<AuthUser> {
+  const response = await apiClient.get<{ user: AuthUser }>("/auth/me", options);
   return response.user;
 }
 
