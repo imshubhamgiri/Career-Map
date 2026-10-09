@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Sun, Moon, ArrowRight, Sparkles } from "lucide-react";
-import { AnimatedShinyText } from "@/components/ui/animated-shiny-text";
 import { useTheme } from "@core/hooks/use-theme";
 import { InteractiveShowcase } from "@/features/landing";
 
 export default function LandingPage() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, mounted, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-[#0e121c] dark:text-[#edf0f9] transition-colors duration-200 flex flex-col justify-between selection:bg-brand-indigo/30 selection:text-white">
@@ -30,7 +28,7 @@ export default function LandingPage() {
             aria-label="Toggle theme"
             className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-zinc-200 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors cursor-pointer text-[#666d7c] dark:text-[#8c96aa] hover:text-[#0e121c] dark:hover:text-[#edf0f9]"
           >
-            {theme === "dark" ? (
+            {!mounted ? null : theme === "dark" ? (
               <>
                 <Sun className="w-3.5 h-3.5 text-brand-cyan" />
                 <span>Light mode</span>

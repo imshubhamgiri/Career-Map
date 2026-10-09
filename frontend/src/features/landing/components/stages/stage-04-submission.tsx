@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { CheckCircle2, Play, Send, Zap, Clock, Cpu, HardDrive, Check } from "lucide-react";
 
 export function StageSubmission() {
-  const [hasSubmitted, setHasSubmitted] = useState(true);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col space-y-3 font-sans">
@@ -73,12 +73,14 @@ export function StageSubmission() {
       </div>
 
       {/* LeetCode Accepted Result Card */}
-      <motion.div
+      {hasSubmitted && (
+
+        <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
         className="rounded-xl p-3.5 border border-emerald-500/40 bg-[#16261c] text-white relative overflow-hidden"
-      >
+        >
         <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-[#2cbb5d]" />
@@ -108,7 +110,7 @@ export function StageSubmission() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="mt-3 p-2.5 rounded-lg border border-brand-cyan/40 bg-black/80 flex items-center justify-between text-xs"
-        >
+          >
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-brand-cyan animate-ping" />
             <div>
@@ -125,6 +127,7 @@ export function StageSubmission() {
           </span>
         </motion.div>
       </motion.div>
+        )}
     </div>
   );
 }
