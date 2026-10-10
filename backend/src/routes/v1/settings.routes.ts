@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import { SettingsController } from '../../controllers/settings.controller';
 import { authenticate } from '../../middleware/auth.middleware';
+import { settingsRateLimit } from '../../middleware/rateLimit.middleware';
 
 const router = Router();
 const controller = new SettingsController();
+
+router.use(settingsRateLimit);
 
 // All settings endpoints require active user session
 router.use(authenticate);

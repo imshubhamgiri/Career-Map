@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import { SubmissionController } from '../../controllers/submission.controller';
 import { authenticate, verifyApiKey } from '../../middleware/auth.middleware';
+import { submissionRateLimit } from '../../middleware/rateLimit.middleware';
 
 const submissionController = new SubmissionController();
 
 const router = Router();
+
+router.use(submissionRateLimit);
 
 // Extension ingestion endpoint (authenticated via x-api-key)
 router.post('/', verifyApiKey, submissionController.handleSubmission);
