@@ -9,10 +9,13 @@ import { logger } from './utils/logger';
 import prisma from './config/db';
 import { attachAuthContext } from './middleware/auth.middleware';
 import { COOKIE_SECRET } from './utils/tokens';
+import { globalRateLimitMiddleware } from './middleware/rateLimit.middleware';
 
 const app: Express = express();
 
 // Middlewares
+
+app.set('trust proxy', 1);
 app.use(
   pinoHttp({
     logger,
@@ -37,6 +40,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(COOKIE_SECRET));
 app.use(attachAuthContext);
+app.use(globalRateLimitMiddleware);
 
 
 // Health check endpoint
