@@ -27,8 +27,10 @@ async function refreshSession(req: NextRequest): Promise<Headers | null> {
   }
 }
 
-function continueWithRefreshCookies(refreshHeaders: Headers): NextResponse {
-  const response = NextResponse.next();
+function appendRefreshCookies(
+  response: NextResponse,
+  refreshHeaders: Headers,
+): NextResponse {
   const setCookies =
     typeof refreshHeaders.getSetCookie === "function"
       ? refreshHeaders.getSetCookie()
@@ -44,6 +46,8 @@ function continueWithRefreshCookies(refreshHeaders: Headers): NextResponse {
 }
 
 export async function proxy(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+  const isAuthRoute = pathname === "/login" || pathname === "/register";
   const token = req.cookies.get("access_token")?.value;
 
   try {
@@ -58,18 +62,31 @@ export async function proxy(req: NextRequest) {
     }
 
     await jose.jwtVerify(token, new TextEncoder().encode(secretValue));
+
+    if (isAuthRoute) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
     return NextResponse.next();
   } catch {
     const refreshedCookies = await refreshSession(req);
     if (refreshedCookies) {
-      return continueWithRefreshCookies(refreshedCookies);
+      if (isAuthRoute) {
+        return appendRefreshCookies(
+          NextResponse.redirect(new URL("/dashboard", req.url)),
+          refreshedCookies,
+        );
+      }
+      return appendRefreshCookies(NextResponse.next(), refreshedCookies);
     }
 
+    if (isAuthRoute) {
+      return NextResponse.next();
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 }
 
-// Apply only to dashboard routes
+// Apply to dashboard and auth routes
 export const config = {
-  matcher: ["/dashboard/:path*" , "/roadmaps/:path*"],
+  matcher: ["/dashboard/:path*", "/roadmaps/:path*", "/login", "/register"],
 };
