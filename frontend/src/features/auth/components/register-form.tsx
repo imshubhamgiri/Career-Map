@@ -31,6 +31,14 @@ export function RegisterForm() {
     }
   }
 
+  if (isInitializing || (isAuthenticated && !pendingEmail)) {
+    return (
+      <div className="w-full max-w-sm flex items-center justify-center p-12">
+        <div className="w-6 h-6 border-2 border-brand-indigo-light dark:border-brand-indigo border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (pendingEmail) {
     return (
       <InputOTPForm
