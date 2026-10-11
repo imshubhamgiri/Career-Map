@@ -1,12 +1,12 @@
 import ms from 'ms';
 import jwt from 'jsonwebtoken';
-import { CookieOptions,Response } from 'express';
+import { CookieOptions, Response } from 'express';
+import { env } from '../config/env';
 
+export const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET;
+export const COOKIE_SECRET = env.COOKIE_SECRET;
 
-export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'super-secret-access';
-export const COOKIE_SECRET = process.env.COOKIE_SECRET || 'cookie-signing-secret';
-
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === 'production';
 
 export interface AccessTokenPayload {
     userId: string;

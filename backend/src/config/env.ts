@@ -21,6 +21,8 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional(),
   REDIS_URL: z.string().optional(),
   ENCRYPTION_KEY: z.string().optional(),
+  ACCESS_TOKEN_SECRET: z.string().default('super-secret-access'),
+  COOKIE_SECRET: z.string().default('cookie-signing-secret'),
 });
 
 export const env = envSchema.parse(process.env);

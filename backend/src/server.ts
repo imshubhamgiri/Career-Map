@@ -1,5 +1,5 @@
-import app from './app';
 import { env } from './config/env';
+import app from './app';
 import { logger } from './utils/logger';
 
 const PORT = env.PORT || 3000;
