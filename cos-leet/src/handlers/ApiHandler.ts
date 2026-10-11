@@ -1,6 +1,6 @@
 import { SubmissionPayload } from '../types/Submission';
 
-const BACKEND_SUBMISSIONS_URL = 'http://localhost:3000/api/v1/submissions';
+const BACKEND_SUBMISSIONS_URL = 'http://localhost:5000/api/v1/submissions';
 const API_KEY_STORAGE_KEY = 'apiKey';
 
 export interface SubmitResponse {
