@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { Sun, Moon, ArrowRight, Sparkles } from "lucide-react";
 import { useTheme } from "@core/hooks/use-theme";
+import { useAuth } from "@features/auth";
 import { InteractiveShowcase } from "@/features/landing";
 
 export default function LandingPage() {
   const { theme, mounted, toggleTheme } = useTheme();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen bg-light-bg dark:bg-dark-bg text-[#0e121c] dark:text-[#edf0f9] transition-colors duration-200 flex flex-col justify-between selection:bg-brand-indigo/30 selection:text-white">
@@ -23,6 +25,14 @@ export default function LandingPage() {
 
         {/* Theme Toggle & Auth Buttons */}
         <div className="flex items-center gap-3">
+          {isAuthenticated && (
+            <Link
+              href="/dashboard"
+              className="text-xs font-medium px-3 py-1.5 rounded-full border border-zinc-200 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors text-[#0e121c] dark:text-[#edf0f9]"
+            >
+              Dashboard
+            </Link>
+          )}
           <button
             onClick={toggleTheme}
             aria-label="Toggle theme"
@@ -70,20 +80,20 @@ export default function LandingPage() {
             {/* CTAs */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
-                href="/login"
+                href={isAuthenticated ? "/dashboard" : "/login"}
                 className="bg-brand-indigo-light hover:bg-[#4b55dc] dark:bg-brand-indigo dark:hover:bg-[#6c72e8] text-white dark:text-[#edf0f9] px-6 py-3 rounded-xl font-medium text-sm transition-all shadow-sm flex items-center gap-2"
-                prefetch= {false}
               >
-                <span>Get started</span>
+                <span>{isAuthenticated ? "Go to Dashboard" : "Get started"}</span>
                 <ArrowRight className="w-4 h-4 opacity-80" />
               </Link>
-              <Link
-                href="/login"
-                prefetch={false}
-                className="border border-[#0e121c]/25 hover:border-[#0e121c] dark:border-[#edf0f9]/30 dark:hover:border-[#edf0f9] text-[#0e121c] dark:text-[#edf0f9] px-6 py-3 rounded-xl font-medium text-sm transition-all hover:bg-black/5 dark:hover:bg-white/5"
-              >
-                Log in
-              </Link>
+              {!isAuthenticated && (
+                <Link
+                  href="/login"
+                  className="border border-[#0e121c]/25 hover:border-[#0e121c] dark:border-[#edf0f9]/30 dark:hover:border-[#edf0f9] text-[#0e121c] dark:text-[#edf0f9] px-6 py-3 rounded-xl font-medium text-sm transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                >
+                  Log in
+                </Link>
+              )}
             </div>
 
             {/* AI Badge */}
