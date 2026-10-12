@@ -70,6 +70,13 @@ export class RoadmapService {
   }
 
   /**
+   * Retrieve lightweight status for a roadmap during background ingestion polling
+   */
+  async getRoadmapStatus(roadmapId: string, userId: string) {
+    return this.roadmapRepo.findRoadmapStatusById(roadmapId, userId);
+  }
+
+  /**
    * List all roadmaps belonging to a specific user
    */
   async getUserRoadmaps(userId: string): Promise<RoadmapSummary[]> {

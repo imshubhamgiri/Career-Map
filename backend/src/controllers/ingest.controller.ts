@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { normalizePdf } from '../services/extractors/pdf.extractor';
 import { processDocumentPipeline } from '../services/ingestion/pipeline.service';
-import { AppError } from '../errors/appError';
+import { AppError, NotFoundError } from '../errors/appError';
 import { RoadmapService } from '../services/roadmap.service';
 import { ApiResponse, IngestUrlInput, PipelineResult } from '../types/index';
 import { Roadmap, RoadmapStatus } from '@prisma/client';
@@ -101,6 +101,45 @@ export async function ingestFile(
     }
 
     res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/v1/ingest/status/:roadmapId
+ * Lightweight ingestion status polling endpoint
+ */
+export async function getIngestStatus(
+  req: Request<{ roadmapId: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { roadmapId } = req.params;
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new AppError('Unauthorized', 401);
+    }
+
+    const roadmap = await roadmapService.getRoadmapStatus(roadmapId, userId);
+    if (!roadmap) {
+      throw new NotFoundError('Roadmap ingestion job not found');
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        roadmapId: roadmap.id,
+        title: roadmap.title,
+        sourceType: roadmap.sourceType,
+        sourceUrl: roadmap.sourceUrl,
+        status: roadmap.status,
+        errorMessage: roadmap.errorMessage,
+        problemCount: roadmap._count?.roadmapProblems ?? 0,
+        updatedAt: roadmap.updatedAt,
+      },
+    });
   } catch (err) {
     next(err);
   }

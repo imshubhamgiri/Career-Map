@@ -104,6 +104,30 @@ export class RoadmapRepository {
   }
 
   /**
+   * Lightweight status query for ingestion polling.
+   * Avoids heavy joins with problems, submissions, or progress events.
+   */
+  findRoadmapStatusById(id: string, userId: string) {
+    return prisma.roadmap.findUnique({
+      where: { id, userId },
+      select: {
+        id: true,
+        title: true,
+        sourceType: true,
+        sourceUrl: true,
+        status: true,
+        errorMessage: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            roadmapProblems: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Clone-on-Ingest optimization: Atomically clones an existing roadmap and its roadmap_problems
    * linkages for a new user without touching LLMs or scraping.
    */
