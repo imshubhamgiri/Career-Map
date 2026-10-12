@@ -285,7 +285,7 @@ export class GithubSyncService {
     if (googleProvider) {
       try {
         const { output } = await generateText({
-          model: googleProvider('gemini-2.5-flash'),
+          model: googleProvider('gemini-3.8-flash'),
           output: Output.object({
             schema: SubmissionAnalysisSchema,
           }),
