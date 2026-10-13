@@ -4,6 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { fetchRoadmapById, RoadmapView, type RoadmapDetail } from "@features/roadmaps";
+import { IngestProgress } from "@features/ingest";
 
 export default function SpecificRoadmapPage({
   params,
@@ -89,6 +90,22 @@ export default function SpecificRoadmapPage({
           </Link>
         </div>
       </div>
+    );
+  }
+
+  // If the roadmap is still being ingested or extraction failed, show real-time ingestion status
+  if (roadmap.status === "PROCESSING" || roadmap.status === "PENDING" || roadmap.status === "FAILED") {
+    return (
+      <IngestProgress
+        roadmapId={id}
+        initialTitle={roadmap.title}
+        onCompleted={async () => {
+          const completedData = await fetchRoadmapById(id);
+          if (completedData) {
+            setRoadmap(completedData);
+          }
+        }}
+      />
     );
   }
 

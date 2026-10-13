@@ -46,17 +46,36 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
         <div className="mt-5 space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-[#666d7c] dark:text-[#8c96aa]">
-              {total > 0 ? `${solved} of ${total} problems solved` : "Progress"}
+              {roadmap.status === "PROCESSING"
+                ? "Extracting problems..."
+                : roadmap.status === "FAILED"
+                ? "Extraction failed"
+                : total > 0
+                ? `${solved} of ${total} problems solved`
+                : "Progress"}
             </span>
             <span className="font-semibold text-[#0e121c] dark:text-[#edf0f9]">
-              {percentage}%
+              {roadmap.status === "PROCESSING" ? "In queue" : `${percentage}%`}
             </span>
           </div>
 
           <div className="h-2 w-full rounded-full bg-light-surface dark:bg-[#1f2533] overflow-hidden">
             <div
-              className="h-full bg-linear-to-r from-brand-indigo-light to-brand-cyan rounded-full transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(percentage > 0 ? 3 : 0, percentage))}%` }}
+              className={`h-full rounded-full transition-all duration-500 ${
+                roadmap.status === "PROCESSING"
+                  ? "bg-amber-500 animate-pulse"
+                  : roadmap.status === "FAILED"
+                  ? "bg-rose-500"
+                  : "bg-linear-to-r from-brand-indigo-light to-brand-cyan"
+              }`}
+              style={{
+                width:
+                  roadmap.status === "PROCESSING"
+                    ? "60%"
+                    : roadmap.status === "FAILED"
+                    ? "100%"
+                    : `${Math.min(100, Math.max(percentage > 0 ? 3 : 0, percentage))}%`,
+              }}
             />
           </div>
         </div>
@@ -65,7 +84,15 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
       {/* Action Footer */}
       <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-white/5 flex items-center justify-between">
         <span className="text-xs text-[#666d7c] dark:text-[#8c96aa] flex items-center gap-1">
-          {percentage === 100 ? (
+          {roadmap.status === "PROCESSING" ? (
+            <span className="text-amber-500 flex items-center gap-1.5 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Processing
+            </span>
+          ) : roadmap.status === "FAILED" ? (
+            <span className="text-rose-500 flex items-center gap-1 font-medium">
+              Failed
+            </span>
+          ) : percentage === 100 ? (
             <span className="text-emerald-500 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Complete
             </span>
@@ -80,7 +107,7 @@ export function RoadmapCard({ roadmap }: RoadmapCardProps) {
           href={`/dashboard/roadmap/${roadmap.id}`}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-indigo-light dark:text-brand-cyan group-hover:translate-x-0.5 transition-transform"
         >
-          <span>Open Roadmap</span>
+          <span>{roadmap.status === "PROCESSING" ? "View Progress" : "Open Roadmap"}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>

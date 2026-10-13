@@ -13,7 +13,7 @@ import {
   FileText,
   Compass,
 } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
+import { startUrlIngestion } from "@features/ingest";
 
 export default function ImportPage() {
   const router = useRouter();
@@ -32,24 +32,12 @@ export default function ImportPage() {
     setErrorMessage(null);
 
     try {
-      // Call backend ingestion endpoint
-      const response = await apiClient.post<any>("/ingest/url", {
-        url: url.trim(),
-        title: title.trim() || undefined,
-      }).catch(() => null);
-
-      if (response?.data?.roadmapId) {
-        setSuccessMessage("Roadmap queued for extraction!");
-        setTimeout(() => {
-          router.push(`/dashboard/roadmap/${response.data.roadmapId}`);
-        }, 1200);
-      } else {
-        // Fallback for immediate preview if backend ingestion worker is running asynchronously
-        setSuccessMessage("Roadmap detected! Loading extracted topics...");
-        setTimeout(() => {
-          router.push("/dashboard/roadmap/sample-neetcode-150");
-        }, 1200);
-      }
+      const data = await startUrlIngestion(url.trim(), title.trim() || undefined);
+      setSuccessMessage("Roadmap queued for extraction!");
+      const targetId = data.id;
+      setTimeout(() => {
+        router.push(`/dashboard/roadmap/${targetId}`);
+      }, 800);
     } catch (err: any) {
       setErrorMessage(err?.message || "Failed to start roadmap ingestion. Please verify the URL.");
     } finally {
