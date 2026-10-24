@@ -1,5 +1,6 @@
 import prisma from '../config/db';
 import { Roadmap, RoadmapStatus } from '@prisma/client';
+import { NotFoundError } from '../errors/appError';
 
 export interface RoadmapInput {
   userId: string;
@@ -30,7 +31,7 @@ export class RoadmapRepository {
   }
 
   findRoadmapById(id: string, userId: string) {
-    return prisma.roadmap.findUnique({
+    return prisma.roadmap.findFirst({
       where: { id, userId },
       include: {
         roadmapProblems: {
@@ -94,12 +95,17 @@ export class RoadmapRepository {
     });
   }
 
-  deleteRoadmap(id: string, userId: string): Promise<Roadmap> {
+  async deleteRoadmap(id: string, userId: string): Promise<Roadmap> {
+    const existing = await prisma.roadmap.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Roadmap not found or access denied');
+    }
+
     return prisma.roadmap.delete({
-      where: {
-        id,
-        userId,
-      },
+      where: { id },
     });
   }
 
@@ -108,7 +114,7 @@ export class RoadmapRepository {
    * Avoids heavy joins with problems, submissions, or progress events.
    */
   findRoadmapStatusById(id: string, userId: string) {
-    return prisma.roadmap.findUnique({
+    return prisma.roadmap.findFirst({
       where: { id, userId },
       select: {
         id: true,
