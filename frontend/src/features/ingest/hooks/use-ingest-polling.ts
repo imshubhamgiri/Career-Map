@@ -119,7 +119,7 @@ export function useIngestPolling(
             clearTimer();
             const timeoutMsg = "Ingestion is taking longer than expected. Please check back shortly.";
             setError(timeoutMsg);
-            onFailedRef.current?.(timeoutMsg);
+             onFailedRef.current?.(timeoutMsg);
             return data;
           }
 
