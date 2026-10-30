@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Plus, RefreshCw } from "lucide-react";
 import { useAuth } from "@features/auth";
 import { fetchUserRoadmaps, RoadmapCard, EmptyRoadmaps, type Roadmap } from "@features/roadmaps";
+
+// export const metadata:Metadata = {
+//   title: "Dashboard", 
+//   description: "Your personalized dashboard for managing career roadmaps, tracking practice velocity, and staying focused on your goals.",
+// };
 
 export default function DashboardPage() {
   const { user } = useAuth();
