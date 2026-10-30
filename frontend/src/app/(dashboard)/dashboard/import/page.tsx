@@ -10,8 +10,6 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  FileText,
-  Compass,
 } from "lucide-react";
 import { startUrlIngestion } from "@features/ingest";
 
