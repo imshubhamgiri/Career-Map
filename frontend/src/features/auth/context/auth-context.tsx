@@ -62,6 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     const isAuthPage = pathname === "/login" || pathname === "/register";
 
+    // If we land on an auth page while holding stale in-memory user data,
+    // the proxy/server redirected us here because session tokens expired.
+    // Invalidate stale memory cache immediately so isAuthenticated becomes false.
+    if (isAuthPage && cachedUser) {
+      cachedUser = null;
+      sessionRestored = false;
+      if (!cancelled) {
+        setUser(null);
+        setIsInitializing(false);
+      }
+      return;
+    }
+
     if (sessionRestored) {
       if (!cancelled) {
         setUser(cachedUser);
