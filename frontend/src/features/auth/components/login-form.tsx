@@ -13,7 +13,6 @@ export function LoginForm() {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(isInitializing , isAuthenticated);
     if (!isInitializing && isAuthenticated) {
       router.replace("/dashboard");
     }
@@ -37,7 +36,6 @@ export function LoginForm() {
   }
 
   if (isInitializing || isAuthenticated) {
-    console.log(isInitializing , isAuthenticated);
     return (
       <div className="w-full max-w-sm flex items-center justify-center p-12">
         <div className="w-6 h-6 border-2 border-brand-indigo-light dark:border-brand-indigo border-t-transparent rounded-full animate-spin" />
