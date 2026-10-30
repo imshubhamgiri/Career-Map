@@ -15,15 +15,26 @@ export interface VerifyGithubConfigResult {
     hasPushAccess: boolean;
 }
 
-export async function fetchSettings(): Promise<{ apiKeys: ApiKeyResponse[]; githubConfig: GithubConfig | null }> {
-  const response = await apiClient.get<ApiResponse<{ apiKeys: ApiKeyResponse[]; githubConfig: GithubConfig | null }>>('/settings');
-  if(!response?.data || !response.data.apiKeys || !Array.isArray(response.data.apiKeys)) {
-    return { apiKeys: [], githubConfig: null };
-  }
-  if(!response.data.githubConfig) {
-    return { apiKeys: response.data.apiKeys, githubConfig: null };  
-  }
-  return response.data;
+export async function fetchSettings(): Promise<{
+    apiKeys: ApiKeyResponse[];
+    githubConfig: GithubConfig | null;
+}> {
+    const [api, github] = await Promise.all([
+        apiClient.get<ApiResponse<ApiKeyResponse[]>>('/settings/api-keys'),
+        apiClient.get<ApiResponse<GithubConfig | null>>('/settings/github'),
+    ]);
+
+    console.log('fetchSettings response:', { api, github });
+
+    if (!api?.data || !Array.isArray(api.data)) {
+        return { apiKeys: [], githubConfig: null };
+    }
+
+    if (!github?.data) {
+        return { apiKeys: api.data, githubConfig: null };
+    }
+
+    return { apiKeys: api.data, githubConfig: github.data };
 }
 
 
