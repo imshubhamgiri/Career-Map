@@ -33,7 +33,7 @@ export function getBaseRefreshTokenOptions(): CookieOptions {
         secure: isProduction,
         sameSite: 'strict',
         signed: true,
-        path: '/api/v1/auth',
+        path: '/',
     }
 }
 
