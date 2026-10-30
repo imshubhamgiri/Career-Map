@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { useState , useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ApiKeyResponse, GithubConfigForm } from "../types";
 import { Button } from "@/core/components/ui/button";
 import {
@@ -23,20 +23,21 @@ import {
   verifyGithubConfig,
 } from "../services/setting-service";
 import { ApiError } from "@/lib/api-client";
+import { useSettings } from "../hooks/useSettings";
 
 
-const initialGithubConfig: GithubConfigForm = {
+
+const defaultGithubConfig: GithubConfigForm = {
   githubUsername: "your-username",
   githubRepo: "interview-solutions",
   githubBranch: "main",
   personalAccessToken: "your-github-token",
 };
-
 export function SettingsPage() {
   const [apiKeys, setApiKeys] = useState<ApiKeyResponse[] | null>(null);
   const [keyName, setKeyName] = useState("");
   const [newKey, setNewKey] = useState<string | null>(null);
-  const [githubConfig, setGithubConfig] = useState<GithubConfigForm>(initialGithubConfig);
+  const [githubConfig, setGithubConfig] = useState<GithubConfigForm>(defaultGithubConfig);
   const [githubSaved, setGithubSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +51,23 @@ export function SettingsPage() {
   const [githubSuccessMessage, setGithubSuccessMessage] = useState<string | null>(null);
 
   const KeyInputRef = useRef<HTMLInputElement>(null);
+
+  const { apiKeys: fetchedApiKeys, githubConfig: savedGithubConfig } = useSettings();
+
+  useEffect(() => {
+    setApiKeys(fetchedApiKeys);
+
+    if (!savedGithubConfig) {
+      return;
+    }
+
+    setGithubConfig((currentConfig) => ({
+      ...currentConfig,
+      githubUsername: savedGithubConfig.githubUsername ?? currentConfig.githubUsername,
+      githubRepo: savedGithubConfig.githubRepo ?? currentConfig.githubRepo,
+      githubBranch: savedGithubConfig.githubBranch ?? currentConfig.githubBranch,
+    }));
+  }, [fetchedApiKeys, savedGithubConfig]);
 
   const handleGenerateApiKey = async () => {
     setIsLoading(true);
