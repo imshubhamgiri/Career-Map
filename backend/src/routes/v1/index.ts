@@ -4,6 +4,7 @@ import ingestRoutes from './ingest.routes';
 import roadmapRoutes from './roadmap.routes';
 import submissionRoutes from './submission.routes';
 import settingsRoutes from './settings.routes';
+import progressRoutes from './progress.routes';
 
 const router = Router();
 
@@ -12,5 +13,6 @@ router.use('/ingest', ingestRoutes);
 router.use('/roadmaps', roadmapRoutes);
 router.use('/submissions', submissionRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/progress', progressRoutes);
 
 export default router;
