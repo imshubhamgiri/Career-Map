@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { RoadmapDetail, RoadmapProblemItem, ProgressStatus } from "../types";
 import { RevisionNotesDrawer } from "./revision-notes-drawer";
+import { updateProblemProgress } from "@/features/problems/services/problem.service";
 
 interface RoadmapProps {
   roadmap: RoadmapDetail;
@@ -50,8 +51,22 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
     setIsDrawerOpen(true);
   };
 
-  // Toggle problem solve state optimistically
-  const toggleProblemStatus = (problemId: string) => {
+  // Toggle problem solve state optimistically with server persistence & rollback
+  const toggleProblemStatus = async (problemId: string) => {
+    // 1. Snapshot previous state for rollback on error
+    const previousRoadmap = roadmap;
+
+    // Determine target status
+    let targetStatus: ProgressStatus = "SOLVED";
+    for (const t of roadmap.topics) {
+      const found = t.problems.find((p) => p.problemId === problemId);
+      if (found) {
+        targetStatus = found.status === "SOLVED" ? "NOT_STARTED" : "SOLVED";
+        break;
+      }
+    }
+
+    // 2. Immediately apply optimistic update in React state
     setRoadmap((prev) => {
       let solvedCountDelta = 0;
       const updatedTopics = prev.topics.map((t) => {
@@ -92,6 +107,15 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
         topics: updatedTopics,
       };
     });
+
+    // 3. Fire background network persistence
+    try {
+      await updateProblemProgress(problemId, targetStatus);
+    } catch (err) {
+      console.error("Failed to persist problem progress to backend, rolling back:", err);
+      // 4. Rollback to snapshot on failure
+      setRoadmap(previousRoadmap);
+    }
   };
 
   // Find next problems for the "Today's Queue" card
