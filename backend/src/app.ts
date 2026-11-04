@@ -7,6 +7,7 @@ import apiRoutes from './routes';
 import { errorHandler } from './errors/errorHandler';
 import { logger } from './utils/logger';
 import prisma from './config/db';
+import { redisClient } from './config/redis';
 import { attachAuthContext } from './middleware/auth.middleware';
 import { COOKIE_SECRET } from './utils/tokens';
 import { globalRateLimitMiddleware } from './middleware/rateLimit.middleware';
@@ -44,13 +45,35 @@ app.use(globalRateLimitMiddleware);
 
 
 // Health check endpoint
-app.get('/health',async (_req: Request, res: Response) => {
-  const isDbConnected = await prisma.$queryRaw`SELECT 1`;
-  res.status(isDbConnected ? 200 : 500).json({
-     status: isDbConnected ? 'ok' : 'error', 
-     message: isDbConnected ? 'Database is connected' : 'Database unreachable',
-     uptime: process.uptime() 
+app.get('/health', async (_req: Request, res: Response) => {
+  try {
+    const isDbConnected = await prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
+    let isRedisConnected = false;
+    try {
+      const pong = await redisClient.ping();
+      isRedisConnected = pong === 'PONG';
+    } catch {
+      isRedisConnected = false;
+    }
+
+    const isHealthy = Boolean(isDbConnected) && isRedisConnected;
+
+    res.status(isHealthy ? 200 : 503).json({
+      status: isHealthy ? 'ok' : 'degraded',
+      services: {
+        database: isDbConnected ? 'connected' : 'unreachable',
+        redis: isRedisConnected ? 'connected' : 'unreachable',
+      },
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
     });
+  } catch (err: any) {
+    res.status(503).json({
+      status: 'error',
+      message: err?.message || 'Health check failed',
+      uptime: process.uptime(),
+    });
+  }
 });
 
 // Central API Routes

@@ -9,6 +9,7 @@
     "workers": "tsx watch src/workers/index.ts",
     "start": "node dist/server.js",
     "build": "tsc",
+    "db:deploy": "prisma migrate deploy",
     "test": "vitest run",
     "test:watch": "vitest"
   },
