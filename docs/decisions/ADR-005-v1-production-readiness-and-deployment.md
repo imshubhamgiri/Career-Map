@@ -123,9 +123,9 @@ This ADR establishes the technical decisions, architecture contracts, and implem
 
 ## Verification & Acceptance Checklist
 
-1. [ ] **Prisma Queries**: Navigating to `/dashboard/roadmap/:id` and deleting a roadmap return HTTP 200 without Prisma validation errors.
-2. [ ] **Progress Persistence**: Toggling problem checkboxes persists to `progress_events` in PostgreSQL and survives hard browser refreshes.
-3. [ ] **Settings Integration**: Opening `/dashboard/settings` displays existing API keys and saved GitHub repository information without console 404s.
-4. [ ] **AuthGuard**: Navigating to `/dashboard` unauthenticated redirects to `/login`; expired tokens display skeleton before graceful redirection.
-5. [ ] **Production Health**: `GET /health` reports `status: ok` verifying both PostgreSQL and Redis connectivity.
+1. [x] **Prisma Queries**: Navigating to `/dashboard/roadmap/:id` and deleting a roadmap return HTTP 200 without Prisma validation errors.
+2. [x] **Progress Persistence**: Toggling problem checkboxes persists to `progress_events` in PostgreSQL and survives hard browser refreshes.
+3. [x] **Settings Integration**: Opening `/dashboard/settings` displays existing API keys and saved GitHub repository information without console 404s.
+4. [x] **AuthGuard**: Navigating to `/dashboard` unauthenticated redirects to `/login`; expired tokens display skeleton before graceful redirection.
+5. [x] **Production Health**: `GET /health` reports `status: ok` verifying both PostgreSQL and Redis connectivity.
 6. [ ] **Extension Ingestion**: `cos-leet` submits solutions successfully to the configured production API domain.
