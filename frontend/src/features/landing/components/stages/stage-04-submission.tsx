@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { CheckCircle2, Play, Send, Zap, Clock, Cpu, HardDrive, Check } from "lucide-react";
 
 export function StageSubmission() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setHasSubmitted(true);
+    }, 2000)
+  }, []);
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col space-y-3 font-sans">
