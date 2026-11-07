@@ -1,3 +1,4 @@
+import '../config/env';
 import { createEmailWorker } from './email.worker';
 import { createIngestionWorker } from './ingestion.worker';
 import { createSubmissionWorker } from './submission.worker';

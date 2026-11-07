@@ -1,5 +1,6 @@
 import argon2 from 'argon2';
 import crypto from 'crypto';
+import { env } from '../config/env';
 
 export async function hashPassword(password: string): Promise<string> {
   return argon2.hash(password, {
@@ -38,8 +39,8 @@ const IV_LENGTH = 12; // 96-bit IV recommended for AES-GCM
 
 function getEncryptionKeyBuffer(): Buffer {
   const rawSecret =
-    process.env.ENCRYPTION_KEY ||
-    process.env.ACCESS_TOKEN_SECRET ||
+    env.ENCRYPTION_KEY ||
+    env.ACCESS_TOKEN_SECRET ||
     'cos-default-dev-encryption-key-do-not-use-in-prod';
 
   // If a 64-char hex string (32 bytes) is provided, use it directly; otherwise derive 32 bytes via SHA-256
