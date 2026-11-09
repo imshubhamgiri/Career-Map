@@ -112,4 +112,38 @@ export class SubmissionController {
       next(err);
     }
   };
+
+  /**
+   * GET /api/v1/submissions/:problemId
+   * Retrieves the submission for a specific canonical problem.
+   */
+  getSubmissionByProblem = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        throw new UnauthorizedError('Authentication required');
+      }
+
+      const problemId = String(req.params.problemId || '').trim();
+      if (!problemId) {
+        throw new BadRequestError('problemId parameter is required');
+      }
+
+      const submission = await this.submissionService.getSubmissionByProblem(
+        userId,
+        problemId
+      );
+
+      res.status(200).json({
+        success: true,
+        data: submission,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
 }

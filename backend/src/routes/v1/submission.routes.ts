@@ -14,6 +14,7 @@ router.post('/', verifyApiKey, submissionController.handleSubmission);
 
 // Platform endpoints (authenticated via JWT session)
 router.get('/', authenticate, submissionController.listUserSubmissions);
+router.get('/:problemId', authenticate, submissionController.getSubmissionByProblem);
 router.post('/:problemId/retry-sync', authenticate, submissionController.retrySync);
 
 export default router;
