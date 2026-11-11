@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Check,
@@ -12,10 +12,18 @@ import {
   ExternalLink,
   ArrowRight,
   Sparkles,
+  RotateCw,
+  AlertCircle,
+  CheckCircle2,
+  X,
 } from "lucide-react";
-import type { RoadmapDetail, RoadmapProblemItem, ProgressStatus } from "../types";
+import type { RoadmapDetail, RoadmapProblemItem, ProgressStatus, GithubSyncStatus } from "../types";
 import { RevisionNotesDrawer } from "./revision-notes-drawer";
-import { updateProblemProgress } from "@/features/problems/services/problem.service";
+import {
+  updateProblemProgress,
+  retryProblemGithubSync,
+  fetchProblemSubmission,
+} from "@/features/problems/services/problem.service";
 
 interface RoadmapProps {
   roadmap: RoadmapDetail;
@@ -30,6 +38,20 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
   const [activeDrawerProblem, setActiveDrawerProblem] = useState<RoadmapProblemItem | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"ALL" | "SOLVED" | "UNSOLVED">("ALL");
+  const [syncingProblemIds, setSyncingProblemIds] = useState<Record<string, boolean>>({});
+  const [syncFeedback, setSyncFeedback] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
+
+  // Auto-dismiss sync feedback notification after 4.5 seconds
+  useEffect(() => {
+    if (!syncFeedback) return;
+    const timer = setTimeout(() => {
+      setSyncFeedback(null);
+    }, 4500);
+    return () => clearTimeout(timer);
+  }, [syncFeedback]);
 
   // Dynamic greeting based on current time
   const greeting = useMemo(() => {
@@ -49,6 +71,158 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
   const handleOpenNotes = (problem: RoadmapProblemItem) => {
     setActiveDrawerProblem(problem);
     setIsDrawerOpen(true);
+  };
+
+  /**
+   * Submit / retry handler for GitHub synchronization.
+   * Works in 2 conditions:
+   * 1. Problem is SOLVED but solution is not synced (!SYNCED)
+   * 2. GitHub sync FAILED
+   */
+  const handleGithubSync = async (problem: RoadmapProblemItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const isSolved = problem.status === "SOLVED";
+    const syncStatus = problem.githubSyncStatus;
+    const isSyncFailed = syncStatus === "FAILED";
+    const isSolvedNotSynced = isSolved && syncStatus !== "SYNCED" && !isSyncFailed;
+    const isSyncing =
+      Boolean(syncingProblemIds[problem.problemId]) ||
+      syncStatus === "PENDING" ||
+      syncStatus === "PROCESSING";
+
+    if (isSyncing) return;
+
+    // If already synced, open repository file in GitHub
+    if (syncStatus === "SYNCED") {
+      if (problem.githubRepo) {
+        const branch = "main";
+        const path = problem.githubFilePath ? `/blob/${branch}/${problem.githubFilePath}` : "";
+        window.open(`https://github.com/${problem.githubRepo}${path}`, "_blank");
+      }
+      return;
+    }
+
+    // Must satisfy Condition 1 (solved but not synced) or Condition 2 (sync failed)
+    if (!isSyncFailed && !isSolvedNotSynced) {
+      return;
+    }
+
+    const prevStatus = problem.githubSyncStatus;
+
+    // Optimistically transition to PENDING
+    setSyncingProblemIds((prev) => ({ ...prev, [problem.problemId]: true }));
+    setRoadmap((prev) => ({
+      ...prev,
+      topics: prev.topics.map((t) => ({
+        ...t,
+        problems: t.problems.map((p) =>
+          p.problemId === problem.problemId
+            ? { ...p, githubSyncStatus: "PENDING" as GithubSyncStatus }
+            : p
+        ),
+      })),
+    }));
+
+    try {
+      await retryProblemGithubSync(problem.problemId);
+
+      setSyncFeedback({
+        type: "info",
+        message: `GitHub sync queued for "${problem.originalTitle}". Pushing solution...`,
+      });
+
+      // Poll up to 6 times (every 2.5s) for worker completion
+      let attempts = 0;
+      const pollInterval = setInterval(async () => {
+        attempts += 1;
+        try {
+          const submission = await fetchProblemSubmission(problem.problemId);
+          if (submission) {
+            if (submission.githubSyncStatus === "SYNCED") {
+              clearInterval(pollInterval);
+              setSyncingProblemIds((prev) => ({ ...prev, [problem.problemId]: false }));
+              setRoadmap((prev) => ({
+                ...prev,
+                topics: prev.topics.map((t) => ({
+                  ...t,
+                  problems: t.problems.map((p) =>
+                    p.problemId === problem.problemId
+                      ? {
+                          ...p,
+                          githubSyncStatus: "SYNCED" as GithubSyncStatus,
+                          githubRepo: submission.githubRepo ?? p.githubRepo,
+                          githubCommitSha: submission.githubCommitSha ?? p.githubCommitSha,
+                          githubFilePath: submission.githubFilePath ?? p.githubFilePath,
+                        }
+                      : p
+                  ),
+                })),
+              }));
+              setSyncFeedback({
+                type: "success",
+                message: `Successfully synced "${problem.originalTitle}" to GitHub!`,
+              });
+              return;
+            }
+
+            if (submission.githubSyncStatus === "FAILED") {
+              clearInterval(pollInterval);
+              setSyncingProblemIds((prev) => ({ ...prev, [problem.problemId]: false }));
+              setRoadmap((prev) => ({
+                ...prev,
+                topics: prev.topics.map((t) => ({
+                  ...t,
+                  problems: t.problems.map((p) =>
+                    p.problemId === problem.problemId
+                      ? { ...p, githubSyncStatus: "FAILED" as GithubSyncStatus }
+                      : p
+                  ),
+                })),
+              }));
+              setSyncFeedback({
+                type: "error",
+                message: submission.syncError || "GitHub sync failed. Check your GitHub PAT in Settings.",
+              });
+              return;
+            }
+          }
+        } catch {
+          // ignore transient errors during polling
+        }
+
+        if (attempts >= 6) {
+          clearInterval(pollInterval);
+          setSyncingProblemIds((prev) => ({ ...prev, [problem.problemId]: false }));
+        }
+      }, 2500);
+
+    } catch (err: any) {
+      setSyncingProblemIds((prev) => ({ ...prev, [problem.problemId]: false }));
+
+      // Rollback to previous status
+      setRoadmap((prev) => ({
+        ...prev,
+        topics: prev.topics.map((t) => ({
+          ...t,
+          problems: t.problems.map((p) =>
+            p.problemId === problem.problemId
+              ? { ...p, githubSyncStatus: prevStatus ?? (isSyncFailed ? "FAILED" : null) }
+              : p
+          ),
+        })),
+      }));
+
+      const rawMsg = err?.response?.data?.message || err?.message || "Failed to trigger GitHub sync";
+      const userFriendlyMsg = rawMsg.includes("No submission found")
+        ? "No code submission found for this problem. Solve it on LeetCode with the extension to sync your code."
+        : rawMsg;
+
+      setSyncFeedback({
+        type: "error",
+        message: userFriendlyMsg,
+      });
+    }
   };
 
   // Toggle problem solve state optimistically with server persistence & rollback
@@ -80,7 +254,7 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
               ...p,
               status: nextStatus,
               solvedAt: nextStatus === "SOLVED" ? new Date().toISOString() : null,
-              githubSyncStatus: nextStatus === "SOLVED" ? (p.githubSyncStatus || "SYNCED") : null,
+              githubSyncStatus: nextStatus === "SOLVED" ? p.githubSyncStatus : null,
             };
           }
           return p;
@@ -464,31 +638,87 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
                               {problem.originalDifficulty}
                             </span>
 
-                            {/* GitHub Sync Status Icon (dull at start when not synced, as requested!) */}
-                            <div
-                              title={
-                                problem.githubSyncStatus === "SYNCED"
-                                  ? `Synced to GitHub: ${problem.githubRepo || "Repo"}`
-                                  : problem.githubSyncStatus === "PENDING"
-                                  ? "Sync in progress..."
-                                  : "GitHub: Not synced yet"
-                              }
-                              className="relative flex items-center justify-center cursor-help"
-                            >
-                              <svg
-                                className={`w-4 h-4 transition-all ${
-                                  problem.githubSyncStatus === "SYNCED"
-                                    ? "text-brand-cyan-light dark:text-brand-cyan opacity-100"
-                                    : problem.githubSyncStatus === "PENDING"
-                                    ? "text-amber-500 animate-pulse opacity-90"
-                                    : "text-zinc-400 dark:text-zinc-600 opacity-30 hover:opacity-60"
-                                }`}
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                              </svg>
-                            </div>
+                            {/* GitHub Sync Button */}
+                            {(() => {
+                              const isSyncing =
+                                Boolean(syncingProblemIds[problem.problemId]) ||
+                                problem.githubSyncStatus === "PENDING" ||
+                                problem.githubSyncStatus === "PROCESSING";
+                              const isSynced = problem.githubSyncStatus === "SYNCED";
+                              const isSyncFailed = problem.githubSyncStatus === "FAILED";
+                              const isSolvedNotSynced = isSolved && !isSynced && !isSyncFailed;
+                              const canTriggerSync = !isSyncing && (isSyncFailed || isSolvedNotSynced);
+
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleGithubSync(problem, e)}
+                                  disabled={!canTriggerSync && !isSynced}
+                                  aria-label={
+                                    isSyncing
+                                      ? `GitHub sync in progress for ${problem.originalTitle}`
+                                      : isSynced
+                                      ? `Synced to GitHub: ${problem.githubRepo || "Repo"}`
+                                      : isSyncFailed
+                                      ? `GitHub sync failed for ${problem.originalTitle}. Click to retry.`
+                                      : isSolvedNotSynced
+                                      ? `Sync ${problem.originalTitle} to GitHub`
+                                      : `Solve problem to enable GitHub sync`
+                                  }
+                                  title={
+                                    isSyncing
+                                      ? "GitHub sync in progress..."
+                                      : isSynced
+                                      ? problem.githubRepo
+                                        ? `Synced to GitHub: ${problem.githubRepo}. Click to view file.`
+                                        : "Synced to GitHub"
+                                      : isSyncFailed
+                                      ? "GitHub sync failed. Click to retry sync."
+                                      : isSolvedNotSynced
+                                      ? "Question solved! Click to sync solution to GitHub."
+                                      : "GitHub: Solve problem first to sync"
+                                  }
+                                  className={`relative flex items-center justify-center p-1.5 rounded-lg transition-all ${
+                                    isSyncing
+                                      ? "cursor-wait opacity-90 text-amber-500"
+                                      : isSynced
+                                      ? "text-brand-cyan-light dark:text-brand-cyan opacity-100 hover:bg-brand-cyan/10 hover:scale-105 cursor-pointer"
+                                      : isSyncFailed
+                                      ? "text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-500/10 hover:scale-110 cursor-pointer"
+                                      : isSolvedNotSynced
+                                      ? "text-[#666d7c] dark:text-[#8c96aa] hover:text-brand-indigo-light dark:hover:text-brand-cyan hover:bg-zinc-100 dark:hover:bg-white/5 hover:scale-110 cursor-pointer"
+                                      : "text-zinc-300 dark:text-zinc-700 opacity-40 cursor-not-allowed"
+                                  }`}
+                                >
+                                  {isSyncing ? (
+                                    <RotateCw className="w-4 h-4 animate-spin text-amber-500" />
+                                  ) : (
+                                    <svg
+                                      className="w-4 h-4"
+                                      viewBox="0 0 24 24"
+                                      fill="currentColor"
+                                    >
+                                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                                    </svg>
+                                  )}
+
+                                  {/* Alert dot for failed sync */}
+                                  {isSyncFailed && !isSyncing && (
+                                    <span
+                                      className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse border-2 border-white dark:border-[#0e121c]"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                  {/* Accent dot for solved and ready to sync */}
+                                  {isSolvedNotSynced && !isSyncing && (
+                                    <span
+                                      className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-brand-indigo-light dark:bg-brand-cyan opacity-80"
+                                      aria-hidden="true"
+                                    />
+                                  )}
+                                </button>
+                              );
+                            })()}
 
                             {/* Notes Button (Opens Revision Drawer, as requested!) */}
                             <button
@@ -550,6 +780,36 @@ export function  RoadmapView({ roadmap: initialRoadmap }: RoadmapProps) {
           }));
         }}
       />
+      {/* Toast Feedback for GitHub Sync operations */}
+      {syncFeedback && (
+        <div
+          role="status"
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-xs font-medium backdrop-blur-md transition-all animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-md ${
+            syncFeedback.type === "success"
+              ? "bg-emerald-50/95 dark:bg-emerald-950/90 border-emerald-300 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200"
+              : syncFeedback.type === "error"
+              ? "bg-rose-50/95 dark:bg-rose-950/90 border-rose-300 dark:border-rose-800/60 text-rose-900 dark:text-rose-200"
+              : "bg-white/95 dark:bg-[#12161f]/95 border-zinc-200 dark:border-white/10 text-[#0e121c] dark:text-[#edf0f9]"
+          }`}
+        >
+          {syncFeedback.type === "success" ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          ) : syncFeedback.type === "error" ? (
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+          ) : (
+            <RotateCw className="w-4 h-4 text-brand-indigo-light dark:text-brand-cyan animate-spin shrink-0" />
+          )}
+          <span className="flex-1 leading-snug">{syncFeedback.message}</span>
+          <button
+            type="button"
+            onClick={() => setSyncFeedback(null)}
+            className="p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-opacity cursor-pointer"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
